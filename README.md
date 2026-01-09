@@ -1,6 +1,12 @@
-# alcohol_classifier
+# Alcohol_classifier
+This project implements an end-to-end machine-learning pipeline for classifying images of alcoholic beverages into three categories: beer, wine, and whiskey. The framework is designed with a modular structure with separating data handling, model definition, training, evaluation, visualization, and inference into independent components. To ensure reproducibility and ease of deployment, the entire pipeline is containerized using Docker. This allows the same training and evaluation procedures to be executed consistently across different machines without dependency conflicts, making the framework portable and production-ready.
 
-something somwthing
+
+Data:
+The dataset is organized in a standard folder structure (data/raw/{beer, wine, whiskey}), where each subdirectory represents a class. Images vary in resolution and appearance, reflecting real-world diversity in bottle shapes, labels, lighting conditions, and backgrounds. During preprocessing, all images are resized to a fixed resolution of 224×224 pixels to ensure consistent batching. The dataset can be accessed through: https://www.kaggle.com/datasets/surajgajul20/image-dataset-beer-whisky-wine.
+
+Model:
+Model Model Model
 
 ## Project structure
 
