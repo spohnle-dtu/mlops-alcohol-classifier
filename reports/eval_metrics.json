@@ -1,0 +1,26 @@
+{
+  "accuracy": 0.8709677457809448,
+  "class_names": [
+    "beer",
+    "whiskey",
+    "wine"
+  ],
+  "confusion_matrix": [
+    [
+      100,
+      5,
+      8
+    ],
+    [
+      10,
+      88,
+      6
+    ],
+    [
+      10,
+      5,
+      109
+    ]
+  ],
+  "checkpoint": "checkpoints/best.pt"
+}
