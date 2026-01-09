@@ -22,8 +22,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Ignore data folder
+# Ignore data and models folder
 data/
+models/
 
 # Ignore local config
 .dvc/config.local
