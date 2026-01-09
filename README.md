@@ -9,6 +9,21 @@ Model:
 The used framework and models are [TorchVision](https://github.com/pytorch/vision) and ResNet with pretrained weights (as a starting point). There is multiple ResNet models, but a ResNet-18 model will be used as a starting point for its low computational cost. More advanced/newer ResNet models might be used later in the project e.g. ResNet-50.
 
 These models are trained for general object detection so the output would have to be changed for the 3 possible outputs in this project (beer, wine and whiskey)
+
+Tools:
+The pipeline of tools and helpers from the pytorch ecosystem will consist of some popular standard tools aswell as some that can facilitate our image classification problem:
+
+- Model & Vision essentials
+    - torchvision (contains pre-trained architectures like ResNet)
+- Framework utilities
+    - pytorch lightning
+    - hydra (to parametrize the whole project using config files)
+- Data versioning & logging
+    - DVC (data version control, to keep track of the larger data files)
+    - wandb (weights and biases)
+- Deployment & reproducabilty
+    - docker
+
 ## Project structure
 
 The directory structure of the project looks like this:
