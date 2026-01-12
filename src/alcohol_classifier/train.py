@@ -11,7 +11,7 @@ from torch.optim import Adam
 
 from .data import DataConfig, make_dataloaders
 #from .model import BeverageCNN
-from .model import BeverageModel
+from .model import BeverageModelResnet
 
 
 
@@ -115,7 +115,7 @@ def train(cfg: TrainConfig) -> None:
     num_classes = len(class_names)
 
     #model = BeverageCNN(num_classes=num_classes, dropout=cfg.dropout).to(device)
-    model = BeverageModel(num_classes=num_classes, dropout=cfg.dropout, pretrained=True).to(device)
+    model = BeverageModelResnet(num_classes=num_classes, dropout=cfg.dropout, pretrained=True).to(device)
 
     criterion = nn.CrossEntropyLoss()
     optimizer = Adam(model.parameters(), lr=cfg.lr)

@@ -3,7 +3,7 @@ from torch import nn
 from torchvision import models
 
 
-class BeverageModel(nn.Module):
+class BeverageModelResnet(nn.Module):
     """
     ResNet18 transfer-learning model for 3-class classification.
 
@@ -39,3 +39,4 @@ class BeverageModel(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.backbone(x)
+ 
