@@ -1,0 +1,6 @@
+data:
+  raw_path: data/raw
+  batch_size: 32
+  val_fraction: 0.2
+  seed: 42
+  num_workers: 0

@@ -1,0 +1,12 @@
+defaults:
+  - _self_
+  - dataset: dataset   # Points to configs/dataset/dataset.yaml
+  - model: resnet      # Points to configs/model/resnet.yaml
+  - logger: wandb      # Points to configs/logger/wandb.yaml (optional for now)
+
+# Global overrides or settings
+seed: 42
+
+path_model: "models/best_model.pt"
+path_metrics_eval: "reports/eval_metrics.json"
+path_metrics_train: "reports/train_metrics.json"

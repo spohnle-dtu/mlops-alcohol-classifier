@@ -1,0 +1,18 @@
+seed: 42
+path_model: models/best_model.pt
+path_metrics_eval: reports/eval_metrics.json
+path_metrics_train: reports/train_metrics.json
+dataset:
+  raw_path: data/raw
+  batch_size: 32
+  val_fraction: 0.2
+  seed: 42
+  num_workers: 0
+model:
+  name: resnet18
+  dropout: 0.2
+  pretrained: true
+  freeze_backbone: false
+  lr: 0.001
+  epochs: 10
+logger: {}

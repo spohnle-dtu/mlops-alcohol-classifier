@@ -1,144 +1,114 @@
-from pathlib import Path
-import typer
 import torch
-from torch.utils.data import Dataset
-from torchvision import transforms
-import glob
-from pathlib import Path
+from torch.utils.data import DataLoader, Subset, Dataset
+from torchvision import transforms, datasets
+from sklearn.model_selection import train_test_split
+import hydra
+from omegaconf import DictConfig
 from PIL import Image
-import matplotlib.pyplot as plt
-from dataclasses import dataclass
-from torch.utils.data import DataLoader, random_split
+from pathlib import Path
+import warnings
 
+warnings.filterwarnings("ignore", message="Palette images with Transparency expressed in bytes")
 
-app = typer.Typer()
-
-class AlcDataset(Dataset):
-    """Our alcohol bottle images dataset."""
-
-    def __init__(self, processed_path: Path) -> None:
-        """Initialize the dataset by loading images and labels."""
-        # Load the big tensors once into memory
-        self.images = torch.load(processed_path / "all_images.pt")
-        self.labels = torch.load(processed_path / "all_labels.pt")
+class AlcDataset(torch.utils.data.Dataset):
+    def __init__(self, images_path, labels_path):
+        self.images = torch.load(images_path)
+        self.labels = torch.load(labels_path)
         
-
-    def __len__(self) -> int:
-        """Return the length of the dataset."""
+    def __len__(self):
         return len(self.images)
+
+    def __getitem__(self, idx):
+        return self.images[idx], self.labels[idx]
     
-    def __getitem__(self, index: int):
-        """Return a given sample from the dataset."""
-        return self.images[index], self.labels[index]
-
-def preprocess(data_path: Path = Path("data")) -> None:
-    """
-    Reads raw images, resizes them, and saves them as PyTorch tensors.
-    """
-    raw_dir = Path(data_path / "raw")
-    processed_dir = Path(data_path / "processed")
-
-    # check if processed directory exists, if not create it
-    processed_dir.mkdir(parents=True, exist_ok=True)
-
-    print(f"Processing data from {raw_dir}")
-    
-    # Define the standardized format
-    preprocess_transform = transforms.Compose([
+def get_transforms():
+    """Returns the math operations to clean and prep our images."""
+    # We normalize to match the structure of ResNet
+    train_transform = transforms.Compose([
         transforms.Resize((224, 224)),
+        # transforms.RandomHorizontalFlip(p=0.5),
         transforms.ToTensor(),
-    ])
+        transforms.Normalize(
+            mean=[0.485, 0.456, 0.406], 
+            std=[0.229, 0.224, 0.225]
+        )
+        ])
+    return train_transform
 
-    categories = ["beer", "whiskey", "wine"]
+def robust_loader(path):
+        with Image.open(path) as img:
+            return img.convert("RGB")
 
-    # Create one big tensor and add category as label
+@hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
+def preprocess(cfg: DictConfig):
+    """Converts raw images to saved .pt tensors once."""
+    print(f"Preprocessing images from {cfg.dataset.path_raw}...")
+    
+    raw_dataset = datasets.ImageFolder(
+        root=cfg.dataset.path_raw, 
+        transform=get_transforms(),
+        loader=robust_loader
+    )
+    
+    # We load everything into memory to save it
     all_images = []
     all_labels = []
-
-    print("Creating tensors from images and labels...")
-    for label, category in enumerate(categories):
-        image_paths = glob.glob(str(raw_dir / category / "*.jpg"))
-        for img_path in image_paths:
-            image = Image.open(img_path).convert("RGB")
-            image = preprocess_transform(image)
-            all_images.append(image)
-            all_labels.append(label)
-
-    # Stack all images and labels into tensors
-    all_images_tensor = torch.stack(all_images)
-    all_labels_tensor = torch.tensor(all_labels)
-
-    # Save the tensors
-    torch.save(all_images_tensor, processed_dir / "all_images.pt")
-    torch.save(all_labels_tensor, processed_dir / "all_labels.pt")
-
-    print(f"Images tensor shape: {all_images_tensor.shape}") # Expecting [N, 3, 224, 224]
-    print(f"Labels tensor shape: {all_labels_tensor.shape}") # Expecting [N]
-
-def show_sample(dataset: AlcDataset, index: int = 0):
-    """Visualizes a single sample from the processed dataset."""
-    image_tensor, label = dataset[index]
     
-    # Categories for title mapping
-    categories = ["beer", "whiskey", "wine"]
+    for img, label in raw_dataset:
+        all_images.append(img)
+        all_labels.append(label)
+        
+    # Create the directory if it doesn't exist
+    processed_path = Path(cfg.dataset.path_processed)
+    processed_path.mkdir(parents=True, exist_ok=True)
     
-    # Permute tensor from (C, H, W) to (H, W, C) for plotting
-    image_to_show = image_tensor.permute(1, 2, 0).numpy()
+    # Save as .pt files
+    torch.save(torch.stack(all_images), processed_path / "images.pt")
+    torch.save(torch.tensor(all_labels), processed_path / "labels.pt")
+    # Also save the class names so we don't lose them
+    torch.save(raw_dataset.classes, processed_path / "classes.pt")
     
-    plt.imshow(image_to_show)
-    plt.title(f"Label: {categories[label]} (Index: {index})")
-    plt.axis('off')
-    plt.show()
+    print(f"✅ Preprocessing complete. Files saved in {processed_path}")
 
-@app.command()
-def preprocess_check():
-    """Preprocess the raw data and show a sample image."""
-    preprocess()
-    dataset = AlcDataset(Path("data/processed"))
-    show_sample(dataset, index=700)
+def make_dataloaders(cfg: DictConfig):
+    """Loads the pre-processed tensors and splits them."""
+    processed_path = Path("data/processed")
+    
+    # Check if files exist, if not, suggest preprocessing
+    if not (processed_path / "images.pt").exists():
+        print("❌ Processed data not found. Please run 'python data.py' first.")
+        return
 
-# ---------------------------
-@dataclass
-class DataConfig:
-    processed_path: Path = Path("data/processed")
-    batch_size: int = 32
-    val_fraction: float = 0.2
-    seed: int = 42
-    num_workers: int = 0  # macOS stable
+    dataset = AlcDataset(
+        processed_path / "images.pt", 
+        processed_path / "labels.pt"
+    )
+    class_names = torch.load(processed_path / "classes.pt")
 
-
-def make_dataloaders(cfg: DataConfig):
-    """
-    Returns: train_loader, val_loader, class_names
-    """
-    ds = AlcDataset(cfg.processed_path)
-
-    n = len(ds)
-    n_val = int(round(n * cfg.val_fraction))
-    n_train = n - n_val
-
-    g = torch.Generator().manual_seed(cfg.seed)
-    train_ds, val_ds = random_split(ds, [n_train, n_val], generator=g)
-
-    pin = torch.cuda.is_available()  # pin_memory only helps on CUDA
+    # Split into Train and Validation
+    train_idx, val_idx = train_test_split(
+        range(len(dataset)),
+        test_size=cfg.dataset.val_fraction,
+        stratify=dataset.labels.tolist(), # Use the pre-loaded labels
+        random_state=cfg.dataset.seed
+    )
+    
+    train_ds = Subset(dataset, train_idx)
+    val_ds = Subset(dataset, val_idx)
 
     train_loader = DataLoader(
-        train_ds,
-        batch_size=cfg.batch_size,
-        shuffle=True,
-        num_workers=cfg.num_workers,
-        pin_memory=pin,
+        train_ds, batch_size=cfg.dataset.batch_size, shuffle=True,
+        num_workers=cfg.dataset.num_workers, pin_memory=torch.cuda.is_available()
     )
+    
     val_loader = DataLoader(
-        val_ds,
-        batch_size=cfg.batch_size,
-        shuffle=False,
-        num_workers=cfg.num_workers,
-        pin_memory=pin,
+        val_ds, batch_size=cfg.dataset.batch_size, shuffle=False,
+        pin_memory=torch.cuda.is_available()
     )
+    
+    print(f"✅ Dataloaders successfully created.\n")
 
-    class_names = ["beer", "whiskey", "wine"]  # must match preprocess() order
     return train_loader, val_loader, class_names
 
 if __name__ == "__main__":
-    app()
+    preprocess() # Run this when calling 'python data.py'

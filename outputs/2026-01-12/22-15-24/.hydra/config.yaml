@@ -1,0 +1,15 @@
+seed: 42
+dataset:
+  raw_path: data/raw
+  batch_size: 32
+  val_fraction: 0.2
+  seed: 42
+  num_workers: 0
+model:
+  name: resnet18
+  dropout: 0.2
+  pretrained: true
+  freeze_backbone: false
+  lr: 0.001
+  epochs: 10
+logger: {}

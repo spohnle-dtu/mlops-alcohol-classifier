@@ -1,0 +1,8 @@
+name: "resnet18"
+dropout: 0.2
+pretrained: true
+freeze_backbone: false
+
+# Training hyperparameters
+lr: 0.001
+epochs: 10
