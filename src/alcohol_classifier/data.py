@@ -1,114 +1,213 @@
-import torch
-from torch.utils.data import DataLoader, Subset, Dataset
-from torchvision import transforms, datasets
-from sklearn.model_selection import train_test_split
+from __future__ import annotations
+
+import warnings
+from pathlib import Path
+from typing import Any
+
 import hydra
+import torch
 from omegaconf import DictConfig
 from PIL import Image
-from pathlib import Path
-import warnings
+from sklearn.model_selection import train_test_split
+from torch import Tensor
+from torch.utils.data import DataLoader, Dataset, Subset
+from torchvision import datasets, transforms
 
+# Some images may be palette-based PNGs. PIL can emit warnings for those; we silence them to keep logs readable.
 warnings.filterwarnings("ignore", message="Palette images with Transparency expressed in bytes")
 
 
-class AlcDataset(torch.utils.data.Dataset):
-    def __init__(self, images_path, labels_path):
-        self.images = torch.load(images_path)
-        self.labels = torch.load(labels_path)
+class AlcDataset(Dataset[tuple[Tensor, int]]):
+    """Dataset wrapper for preprocessed tensors stored on disk.
 
-    def __len__(self):
-        return len(self.images)
+    This dataset assumes that preprocessing has already produced two files:
+    - images.pt: a tensor of shape (N, C, H, W)
+    - labels.pt: a tensor of shape (N,)
 
-    def __getitem__(self, idx):
-        return self.images[idx], self.labels[idx]
+    Args:
+        images_path: Path to the saved image tensor.
+        labels_path: Path to the saved label tensor.
+
+    Returns:
+        Each item is a tuple (image, label) where image is a torch.Tensor and label is an int.
+    """
+
+    def __init__(self, images_path: str | Path, labels_path: str | Path) -> None:
+        super().__init__()
+        self.images: Tensor = torch.load(Path(images_path))
+        self.labels: Tensor = torch.load(Path(labels_path))
+
+    def __len__(self) -> int:
+        """Return the number of samples in the dataset."""
+        return int(self.images.shape[0])
+
+    def __getitem__(self, idx: int) -> tuple[Tensor, int]:
+        """Return a single sample.
+
+        Args:
+            idx: Index of the sample.
+
+        Returns:
+            (image, label)
+        """
+        image = self.images[idx]
+        label = int(self.labels[idx].item())
+        return image, label
 
 
-def get_transforms():
-    """Returns the math operations to clean and prep our images."""
-    # We normalize to match the structure of ResNet
-    train_transform = transforms.Compose(
+def get_transforms() -> transforms.Compose:
+    """Create image preprocessing transforms.
+
+    We resize and normalize images to match ImageNet preprocessing, which is the default
+    for most pretrained backbones (e.g., ResNet). This improves transfer learning stability.
+
+    Returns:
+        A torchvision transforms.Compose object.
+    """
+
+    return transforms.Compose(
         [
             transforms.Resize((224, 224)),
+            # Optional augmentation can be enabled later if needed.
             # transforms.RandomHorizontalFlip(p=0.5),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
-    return train_transform
 
 
-def robust_loader(path):
+def robust_loader(path: str | Path) -> Image.Image:
+    """Load an image robustly and convert to RGB.
+
+    ImageFolder may encounter images with different modes (RGBA, palette, grayscale). Converting
+    to RGB ensures a consistent 3-channel input for pretrained CNN backbones.
+
+    Args:
+        path: File path to the image.
+
+    Returns:
+        A PIL RGB image.
+    """
+
     with Image.open(path) as img:
         return img.convert("RGB")
 
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
-def preprocess(cfg: DictConfig):
-    """Converts raw images to saved .pt tensors once."""
+def preprocess(cfg: DictConfig) -> None:
+    """Preprocess raw images into tensors stored in the processed folder.
+
+    This step loads the dataset from an ImageFolder structure, applies the transforms, and writes:
+    - images.pt
+    - labels.pt
+    - classes.pt (class name list)
+
+    Args:
+        cfg: Hydra/OMEGACONF configuration.
+
+    Returns:
+        None
+    """
+
     print(f"Preprocessing images from {cfg.dataset.path_raw}...")
 
-    raw_dataset = datasets.ImageFolder(root=cfg.dataset.path_raw, transform=get_transforms(), loader=robust_loader)
+    raw_dataset = datasets.ImageFolder(
+        root=cfg.dataset.path_raw,
+        transform=get_transforms(),
+        loader=robust_loader,
+    )
 
-    # We load everything into memory to save it
-    all_images = []
-    all_labels = []
+    # We load everything into memory to save it. This is acceptable for small datasets (~3k images).
+    all_images: list[Tensor] = []
+    all_labels: list[int] = []
 
     for img, label in raw_dataset:
         all_images.append(img)
-        all_labels.append(label)
+        all_labels.append(int(label))
 
-    # Create the directory if it doesn't exist
     processed_path = Path(cfg.dataset.path_processed)
     processed_path.mkdir(parents=True, exist_ok=True)
 
-    # Save as .pt files
     torch.save(torch.stack(all_images), processed_path / "images.pt")
-    torch.save(torch.tensor(all_labels), processed_path / "labels.pt")
-    # Also save the class names so we don't lose them
+    torch.save(torch.tensor(all_labels, dtype=torch.long), processed_path / "labels.pt")
+    # Persist class names so downstream steps can map indices -> readable labels.
     torch.save(raw_dataset.classes, processed_path / "classes.pt")
 
     print(f"✅ Preprocessing complete. Files saved in {processed_path}")
 
 
-def make_dataloaders(cfg: DictConfig):
-    """Loads the pre-processed tensors and splits them."""
-    processed_path = Path("data/processed")
+def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]]:
+    """Create train/validation dataloaders from preprocessed tensors.
 
-    # Check if files exist, if not, suggest preprocessing
-    if not (processed_path / "images.pt").exists():
-        print("❌ Processed data not found. Please run 'python data.py' first.")
-        return
+    The split is stratified by class to preserve label distribution in train/val.
 
-    dataset = AlcDataset(processed_path / "images.pt", processed_path / "labels.pt")
-    class_names = torch.load(processed_path / "classes.pt")
+    Args:
+        cfg: Hydra/OMEGACONF configuration. Expected fields:
+            - dataset.path_processed
+            - dataset.val_fraction
+            - dataset.seed
+            - dataset.batch_size
+            - dataset.num_workers
 
-    # Split into Train and Validation
+    Returns:
+        train_loader: Dataloader for the training subset.
+        val_loader: Dataloader for the validation subset.
+        class_names: List of class names in the same order as the label indices.
+
+    Raises:
+        FileNotFoundError: If preprocessed tensors are missing.
+    """
+
+    processed_path = Path(cfg.dataset.path_processed)
+
+    images_file = processed_path / "images.pt"
+    labels_file = processed_path / "labels.pt"
+    classes_file = processed_path / "classes.pt"
+
+    if not images_file.exists() or not labels_file.exists() or not classes_file.exists():
+        raise FileNotFoundError(
+            "Processed data not found. Run preprocessing first: `uv run python src/alcohol_classifier/data.py` "
+            "(or the equivalent invoke task) to generate data/processed/*.pt files."
+        )
+
+    dataset = AlcDataset(images_file, labels_file)
+    class_names: list[str] = torch.load(classes_file)
+
+    # Split into train/val indices.
     train_idx, val_idx = train_test_split(
         range(len(dataset)),
-        test_size=cfg.dataset.val_fraction,
-        stratify=dataset.labels.tolist(),  # Use the pre-loaded labels
-        random_state=cfg.dataset.seed,
+        test_size=float(cfg.dataset.val_fraction),
+        stratify=dataset.labels.tolist(),
+        random_state=int(cfg.dataset.seed),
     )
 
-    train_ds = Subset(dataset, train_idx)
-    val_ds = Subset(dataset, val_idx)
+    train_ds: Subset[tuple[Tensor, int]] = Subset(dataset, train_idx)
+    val_ds: Subset[tuple[Tensor, int]] = Subset(dataset, val_idx)
+
+    pin_memory = torch.cuda.is_available()
 
     train_loader = DataLoader(
         train_ds,
-        batch_size=cfg.dataset.batch_size,
+        batch_size=int(cfg.dataset.batch_size),
         shuffle=True,
-        num_workers=cfg.dataset.num_workers,
-        pin_memory=torch.cuda.is_available(),
+        num_workers=int(cfg.dataset.num_workers),
+        pin_memory=pin_memory,
     )
 
     val_loader = DataLoader(
-        val_ds, batch_size=cfg.dataset.batch_size, shuffle=False, pin_memory=torch.cuda.is_available()
+        val_ds,
+        batch_size=int(cfg.dataset.batch_size),
+        shuffle=False,
+        num_workers=int(cfg.dataset.num_workers),
+        pin_memory=pin_memory,
     )
 
-    print(f"✅ Dataloaders successfully created.\n")
-
+    print("✅ Dataloaders successfully created.")
     return train_loader, val_loader, class_names
 
 
 if __name__ == "__main__":
-    preprocess()  # Run this when calling 'python data.py'
+    # Running this module directly executes preprocessing via Hydra.
+    # Example:
+    #   uv run python src/alcohol_classifier/data.py
+    preprocess()
