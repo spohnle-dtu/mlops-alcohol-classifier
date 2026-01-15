@@ -19,7 +19,7 @@ def _get_device(device: str) -> torch.device:
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def evaluate(cfg: DictConfig) -> None:
-    _set_seed(cfg.seed)
+    _set_seed(cfg.dataset.seed)
     device = _get_device(cfg.device)
     
     _, val_loader, class_names = make_dataloaders(cfg)
