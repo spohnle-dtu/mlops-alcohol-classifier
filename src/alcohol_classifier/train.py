@@ -1,152 +1,218 @@
 from __future__ import annotations
 
 import json
-import time
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
+from typing import Tuple
 
-import hydra
 import torch
 import torch.nn as nn
-from omegaconf import DictConfig
-from torch import Tensor
 from torch.optim import Adam
 
-from data import make_dataloaders
-from model import BeverageModelResnet
+from .data import DataConfig, make_dataloaders
+#from .model import BeverageCNN
+from .model import BeverageModel
 
 
-@hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
-def train(cfg: DictConfig) -> None:
-    """Train an image classification model using PyTorch.
 
-    This function orchestrates the full training loop:
-    - data loading
-    - model initialization
-    - training and validation loops
-    - checkpointing the best model
-    - persisting training metrics
+@dataclass
+class TrainConfig:
+    """Configuration for training the beverage classifier."""
+    
+    # Data
+    data: DataConfig = field(default_factory=DataConfig)
 
-    Args:
-        cfg: Hydra/OMEGACONF configuration containing:
-            - model hyperparameters (lr, epochs, dropout, pretrained, freeze_backbone)
-            - dataset parameters (batch_size, seed)
-            - output paths for model checkpoints and metrics
+    # Model
+    dropout: float = 0.5
+    pretrained: bool = True
+    freeze_backbone: bool = False
 
-    Returns:
-        None
-    """
+    # Training
+    epochs: int = 10
+    lr: float = 1e-3
+    device: str = "auto"  # "cpu", "cuda", "mps", or "auto"
+    seed: int = 42
 
-    # 1. Initialization & reproducibility
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    torch.manual_seed(int(cfg.dataset.seed))
+    # Outputs
+    out_dir: str = "checkpoints"
+    best_name: str = "best.pt"
+    metrics_path: str = "reports/train_metrics.json"
 
-    print("\n--- STARTING TRAINING ---")
-    print(f"Device:   {device}")
-    print(f"Model:    {cfg.model.name} (LR: {cfg.model.lr}, Epochs: {cfg.model.epochs})")
-    print(f"Batch:    {cfg.dataset.batch_size}")
-    print(f"Seed:     {cfg.dataset.seed}")
-    print("-------------------------\n")
 
-    # 2. Data loaders
-    train_loader, val_loader, class_names = make_dataloaders(cfg)
+def _set_seed(seed: int) -> None:
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
 
-    # 3. Model setup
-    model = BeverageModelResnet(
-        num_classes=len(class_names),
-        dropout=float(cfg.model.dropout),
-        pretrained=bool(cfg.model.pretrained),
-        freeze_backbone=bool(cfg.model.freeze_backbone),
+
+def _get_device(device: str) -> torch.device:
+    if device != "auto":
+        return torch.device(device)
+
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    return torch.device("cpu")
+
+
+def train_one_epoch(model, loader, optimizer, criterion, device) -> Tuple[float, float]:
+    model.train()
+    total_loss = 0.0
+    correct = 0
+    total = 0
+
+    for x, y in loader:
+        x = x.to(device)
+        y = y.to(device)
+
+        optimizer.zero_grad(set_to_none=True)
+        logits = model(x)
+        loss = criterion(logits, y)
+        loss.backward()
+        optimizer.step()
+
+        total_loss += float(loss.item()) * x.size(0)
+        preds = torch.argmax(logits, dim=1)
+        correct += int((preds == y).sum().item())
+        total += int(y.numel())
+
+    return total_loss / max(total, 1), correct / max(total, 1)
+
+
+@torch.no_grad()
+def validate(model, loader, criterion, device) -> Tuple[float, float]:
+    model.eval()
+    total_loss = 0.0
+    correct = 0
+    total = 0
+
+    for x, y in loader:
+        x = x.to(device)
+        y = y.to(device)
+
+        logits = model(x)
+        loss = criterion(logits, y)
+
+        total_loss += float(loss.item()) * x.size(0)
+        preds = torch.argmax(logits, dim=1)
+        correct += int((preds == y).sum().item())
+        total += int(y.numel())
+
+    return total_loss / max(total, 1), correct / max(total, 1)
+
+
+def save_checkpoint(path: Path, model: nn.Module, class_names) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(
+        {
+            "state_dict": model.state_dict(),
+            "class_names": class_names,
+        },
+        path,
+    )
+
+
+def train(cfg: TrainConfig) -> None:
+    _set_seed(cfg.seed)
+    device = _get_device(cfg.device)
+
+    train_loader, val_loader, class_names = make_dataloaders(cfg.data)
+    num_classes = len(class_names)
+
+    model = BeverageModel(
+        num_classes=num_classes,
+        dropout=cfg.dropout,
+        pretrained=cfg.pretrained,
+        freeze_backbone=cfg.freeze_backbone,
     ).to(device)
 
-    # 4. Optimizer and loss function
-    criterion: nn.Module = nn.CrossEntropyLoss()
-    optimizer: Adam = Adam(model.parameters(), lr=float(cfg.model.lr))
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total = sum(p.numel() for p in model.parameters())
+    print(f"Model: pretrained={cfg.pretrained}, freeze_backbone={cfg.freeze_backbone}")
+    print(f"Params: trainable={trainable:,} / total={total:,}")
 
-    history: list[dict[str, float]] = []
-    best_acc: float = 0.0
 
-    start_total = time.time()
 
-    # 5. Training loop
-    for epoch in range(1, int(cfg.model.epochs) + 1):
-        # --- TRAINING PHASE ---
-        model.train()
-        train_loss: float = 0.0
-        train_correct: int = 0
-        train_total: int = 0
+    criterion = nn.CrossEntropyLoss()
+    optimizer = Adam((p for p in model.parameters() if p.requires_grad), lr=cfg.lr)
 
-        for images, labels in train_loader:
-            images = images.to(device)
-            labels = labels.to(device)
+    out_dir = Path(cfg.out_dir)
+    best_path = out_dir / cfg.best_name
+    reports_path = Path(cfg.metrics_path)
+    reports_path.parent.mkdir(parents=True, exist_ok=True)
 
-            # Standard PyTorch optimization step
-            optimizer.zero_grad()
-            outputs: Tensor = model(images)
-            loss: Tensor = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+    history = {"config": asdict(cfg), "class_names": class_names, "epochs": []}
+    history["config"]["data"]["processed_path"] = str(history["config"]["data"]["processed_path"])
+    best_val_acc = -1.0
 
-            # Accumulate metrics
-            train_loss += loss.item() * images.size(0)
-            preds: Tensor = torch.argmax(outputs, dim=1)
-            train_correct += int((preds == labels).sum().item())
-            train_total += int(labels.size(0))
+    for epoch in range(1, cfg.epochs + 1):
+        tr_loss, tr_acc = train_one_epoch(model, train_loader, optimizer, criterion, device)
+        va_loss, va_acc = validate(model, val_loader, criterion, device)
 
-        # --- VALIDATION PHASE ---
-        model.eval()
-        val_loss: float = 0.0
-        val_correct: int = 0
-        val_total: int = 0
-
-        with torch.no_grad():
-            for images, labels in val_loader:
-                images = images.to(device)
-                labels = labels.to(device)
-
-                outputs: Tensor = model(images)
-                loss: Tensor = criterion(outputs, labels)
-
-                val_loss += loss.item() * images.size(0)
-                val_correct += int((torch.argmax(outputs, dim=1) == labels).sum().item())
-                val_total += int(labels.size(0))
-
-        # Epoch-level metrics
-        epoch_train_acc: float = train_correct / train_total if train_total > 0 else 0.0
-        epoch_val_acc: float = val_correct / val_total if val_total > 0 else 0.0
+        history["epochs"].append(
+            {"epoch": epoch, "train_loss": tr_loss, "train_acc": tr_acc, "val_loss": va_loss, "val_acc": va_acc}
+        )
 
         print(
-            f"Epoch [{epoch}/{cfg.model.epochs}] - "
-            f"Train Acc: {epoch_train_acc:.3f} | Val Acc: {epoch_val_acc:.3f}"
+            f"[{epoch:02d}/{cfg.epochs}] "
+            f"train loss={tr_loss:.4f} acc={tr_acc:.3f} | "
+            f"val loss={va_loss:.4f} acc={va_acc:.3f}"
         )
 
-        # Save checkpoint if validation accuracy improves
-        if epoch_val_acc > best_acc:
-            best_acc = epoch_val_acc
-            model_path = Path(cfg.path_model)
-            model_path.parent.mkdir(parents=True, exist_ok=True)
-            torch.save(model.state_dict(), model_path)
+        if va_acc > best_val_acc:
+            best_val_acc = va_acc
+            save_checkpoint(best_path, model, class_names)
 
-        history.append(
-            {
-                "epoch": float(epoch),
-                "train_acc": epoch_train_acc,
-                "val_acc": epoch_val_acc,
-            }
-        )
+    with open(reports_path, "w", encoding="utf-8") as f:
+        json.dump(history, f, indent=2, default=str)
 
-    total_duration: float = time.time() - start_total
-    print(f"Total Training Time: {total_duration / 60:.2f} minutes\n")
 
-    # 6. Persist training metrics
-    metrics_path = Path(cfg.path_metrics_train)
-    metrics_path.parent.mkdir(parents=True, exist_ok=True)
+    print(f"✅ Saved best checkpoint to: {best_path}")
+    print(f"✅ Saved training metrics to: {reports_path}")
 
-    with metrics_path.open("w") as f:
-        json.dump(history, f, indent=4)
 
-    print("✅ Training complete. Model checkpoint and metrics saved.")
+def _parse_args():
+    import argparse
+
+    p = argparse.ArgumentParser()
+    p.add_argument("--processed-dir", default="data/processed",
+                   help="Directory containing all_images.pt and all_labels.pt")
+    p.add_argument("--batch-size", type=int, default=32)
+    p.add_argument("--val-fraction", type=float, default=0.2)
+    p.add_argument("--seed", type=int, default=42)
+    p.add_argument("--num-workers", type=int, default=0)
+    p.add_argument("--epochs", type=int, default=10)
+    p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--device", default="auto")
+    p.add_argument("--dropout", type=float, default=0.5)
+    p.add_argument("--freeze-backbone", action="store_true", default=False)
+    p.add_argument("--pretrained", action="store_true", default=True)
+    p.add_argument("--no-pretrained", dest="pretrained", action="store_false")
+    return p.parse_args()
+
 
 
 if __name__ == "__main__":
-    # Allow running the training script directly
-    train()
+    args = _parse_args()
+    cfg = TrainConfig(
+    data=DataConfig(
+        processed_path=Path(args.processed_dir),
+        batch_size=args.batch_size,
+        val_fraction=args.val_fraction,
+        seed=args.seed,
+        num_workers=args.num_workers,
+    ),
+    # Model
+    dropout=args.dropout,
+    pretrained=args.pretrained,
+    freeze_backbone=args.freeze_backbone,
+
+    # Training
+    epochs=args.epochs,
+    lr=args.lr,
+    device=args.device,
+    seed=args.seed,
+    )
+
+    train(cfg)
+
