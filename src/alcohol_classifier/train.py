@@ -1,67 +1,26 @@
-from __future__ import annotations
-
 import json
-from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Tuple
-
 import torch
 import torch.nn as nn
 from torch.optim import Adam
+import hydra
+from omegaconf import DictConfig, OmegaConf
+import wandb
 
-#from .data import DataConfig, make_dataloaders
-from omegaconf import OmegaConf
-from .data import make_dataloaders
-
-#from .model import BeverageCNN
-from .model import BeverageModel
-
-
-
-@dataclass
-@dataclass
-class TrainConfig:
-    """Configuration for training the beverage classifier."""
-
-    # Data
-    processed_dir: str = "data/processed"
-    batch_size: int = 32
-    val_fraction: float = 0.2
-    num_workers: int = 0
-
-    # Model
-    dropout: float = 0.5
-    pretrained: bool = True
-    freeze_backbone: bool = False
-
-    # Training
-    epochs: int = 10
-    lr: float = 1e-3
-    device: str = "auto"
-    seed: int = 42
-
-    # Outputs
-    out_dir: str = "checkpoints"
-    best_name: str = "best.pt"
-    metrics_path: str = "reports/train_metrics.json"
-
-
+from src.alcohol_classifier.data import make_dataloaders
+from src.alcohol_classifier.model import BeverageModel
 
 def _set_seed(seed: int) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-
 def _get_device(device: str) -> torch.device:
-    if device != "auto":
-        return torch.device(device)
-
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-    if torch.cuda.is_available():
-        return torch.device("cuda")
+    if device != "auto":                    return torch.device(device)
+    if torch.backends.mps.is_available():   return torch.device("mps")
+    if torch.cuda.is_available():           return torch.device("cuda")
+    
     return torch.device("cpu")
-
 
 def train_one_epoch(model, loader, optimizer, criterion, device) -> Tuple[float, float]:
     model.train()
@@ -86,7 +45,6 @@ def train_one_epoch(model, loader, optimizer, criterion, device) -> Tuple[float,
 
     return total_loss / max(total, 1), correct / max(total, 1)
 
-
 @torch.no_grad()
 def validate(model, loader, criterion, device) -> Tuple[float, float]:
     model.eval()
@@ -108,119 +66,65 @@ def validate(model, loader, criterion, device) -> Tuple[float, float]:
 
     return total_loss / max(total, 1), correct / max(total, 1)
 
-
-def save_checkpoint(path: Path, model: nn.Module, class_names) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(
-        {
-            "state_dict": model.state_dict(),
-            "class_names": class_names,
-        },
-        path,
-    )
-
-
-def train(cfg: TrainConfig) -> None:
+@hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
+def train(cfg: DictConfig) -> None:
     _set_seed(cfg.seed)
     device = _get_device(cfg.device)
 
-    train_loader, val_loader, class_names = make_dataloaders(cfg.data)
-    num_classes = len(class_names)
+    wandb.init(
+        project=cfg.logger.project,
+        entity=cfg.logger.entity,
+        group=cfg.logger.group,
+        name=cfg.logger.name,
+        config=OmegaConf.to_container(cfg, resolve=True)
+    )
+    wandb.define_metric("epoch")
+    wandb.define_metric("*", step_metric="epoch")
 
+    train_loader, val_loader, class_names = make_dataloaders(cfg)
+    
     model = BeverageModel(
-        num_classes=num_classes,
-        dropout=cfg.dropout,
-        pretrained=cfg.pretrained,
-        freeze_backbone=cfg.freeze_backbone,
+        num_classes=len(class_names),
+        dropout=cfg.model.dropout,
+        pretrained=cfg.model.pretrained,
+        freeze_backbone=cfg.model.freeze_backbone,
     ).to(device)
 
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
-    print(f"Model: pretrained={cfg.pretrained}, freeze_backbone={cfg.freeze_backbone}")
+    print(f"Model: pretrained={cfg.model.pretrained}, freeze_backbone={cfg.model.freeze_backbone}")
     print(f"Params: trainable={trainable:,} / total={total:,}")
 
-
-
     criterion = nn.CrossEntropyLoss()
-    optimizer = Adam((p for p in model.parameters() if p.requires_grad), lr=cfg.lr)
+    optimizer = Adam((p for p in model.parameters() if p.requires_grad), lr=cfg.model.lr)
 
-    out_dir = Path(cfg.out_dir)
-    best_path = out_dir / cfg.best_name
-    reports_path = Path(cfg.metrics_path)
-    reports_path.parent.mkdir(parents=True, exist_ok=True)
-
-    history = {"config": asdict(cfg), "class_names": class_names, "epochs": []}
-    history["config"]["data"]["processed_path"] = str(history["config"]["data"]["processed_path"])
     best_val_acc = -1.0
 
-    for epoch in range(1, cfg.epochs + 1):
+    for epoch in range(1, cfg.model.epochs + 1):
         tr_loss, tr_acc = train_one_epoch(model, train_loader, optimizer, criterion, device)
         va_loss, va_acc = validate(model, val_loader, criterion, device)
 
-        history["epochs"].append(
-            {"epoch": epoch, "train_loss": tr_loss, "train_acc": tr_acc, "val_loss": va_loss, "val_acc": va_acc}
-        )
+        wandb.log({
+            "epoch": epoch,
+            "train/loss": tr_loss, "train/acc": tr_acc,
+            "val/loss": va_loss, "val/acc": va_acc
+        })
 
         print(
-            f"[{epoch:02d}/{cfg.epochs}] "
+            f"[{epoch:02d}/{cfg.model.epochs}] "
             f"train loss={tr_loss:.4f} acc={tr_acc:.3f} | "
             f"val loss={va_loss:.4f} acc={va_acc:.3f}"
         )
 
         if va_acc > best_val_acc:
             best_val_acc = va_acc
-            save_checkpoint(best_path, model, class_names)
+            Path(cfg.path_model).parent.mkdir(parents=True, exist_ok=True)
+            torch.save({"state_dict": model.state_dict(), "class_names": class_names}, cfg.path_model)
 
-    with open(reports_path, "w", encoding="utf-8") as f:
-        json.dump(history, f, indent=2, default=str)
-
-
-    print(f"✅ Saved best checkpoint to: {best_path}")
-    print(f"✅ Saved training metrics to: {reports_path}")
-
-
-def _parse_args():
-    import argparse
-
-    p = argparse.ArgumentParser()
-    p.add_argument("--processed-dir", default="data/processed",
-                   help="Directory containing all_images.pt and all_labels.pt")
-    p.add_argument("--batch-size", type=int, default=32)
-    p.add_argument("--val-fraction", type=float, default=0.2)
-    p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--num-workers", type=int, default=0)
-    p.add_argument("--epochs", type=int, default=10)
-    p.add_argument("--lr", type=float, default=1e-3)
-    p.add_argument("--device", default="auto")
-    p.add_argument("--dropout", type=float, default=0.5)
-    p.add_argument("--freeze-backbone", action="store_true", default=False)
-    p.add_argument("--pretrained", action="store_true", default=True)
-    p.add_argument("--no-pretrained", dest="pretrained", action="store_false")
-    return p.parse_args()
-
-
+    wandb.finish()
+    
+    print(f"✅ Saved best checkpoint to: {cfg.path_model}")
+    print(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
 
 if __name__ == "__main__":
-    args = _parse_args()
-    cfg = TrainConfig(
-    data=DataConfig(
-        processed_path=Path(args.processed_dir),
-        batch_size=args.batch_size,
-        val_fraction=args.val_fraction,
-        seed=args.seed,
-        num_workers=args.num_workers,
-    ),
-    # Model
-    dropout=args.dropout,
-    pretrained=args.pretrained,
-    freeze_backbone=args.freeze_backbone,
-
-    # Training
-    epochs=args.epochs,
-    lr=args.lr,
-    device=args.device,
-    seed=args.seed,
-    )
-
-    train(cfg)
-
+    train()

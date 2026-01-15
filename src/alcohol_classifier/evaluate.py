@@ -1,96 +1,56 @@
-from __future__ import annotations
-
-import json
 import time
-from pathlib import Path
-
-import hydra
 import torch
+import hydra
 from omegaconf import DictConfig
-from torch import Tensor
 
-from data import make_dataloaders
-from model import BeverageModelResnet
+from src.alcohol_classifier.data import make_dataloaders
+from src.alcohol_classifier.model import BeverageModel
 
+def _set_seed(seed: int) -> None:
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+def _get_device(device: str) -> torch.device:
+    if device != "auto":                    return torch.device(device)
+    if torch.backends.mps.is_available():   return torch.device("mps")
+    if torch.cuda.is_available():           return torch.device("cuda")
+    
+    return torch.device("cpu")
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def evaluate(cfg: DictConfig) -> None:
-    """Evaluate a trained model on the validation dataset.
-
-    This script loads a trained model checkpoint, runs inference on the
-    validation split, computes accuracy, and stores evaluation metrics
-    to disk for later inspection or reporting.
-
-    Args:
-        cfg: Hydra/OMEGACONF configuration containing:
-            - path_model: Path to the trained model checkpoint.
-            - path_metrics_eval: Output path for evaluation metrics (JSON).
-            - model.dropout: Dropout rate used when instantiating the model.
-            - dataset configuration used to build dataloaders.
-
-    Returns:
-        None
-    """
-
-    # 1. Setup device
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f"Evaluating on device: {device}")
-
-    # 2. Load validation data
-    # We only need the validation loader for evaluation.
+    _set_seed(cfg.seed)
+    device = _get_device(cfg.device)
+    
     _, val_loader, class_names = make_dataloaders(cfg)
 
-    # 3. Load model architecture and weights
-    model = BeverageModelResnet(
+    checkpoint = torch.load(cfg.path_model, map_location=device)
+    
+    model = BeverageModel(
         num_classes=len(class_names),
-        dropout=float(cfg.model.dropout),
-        pretrained=False,  # We load our own trained weights, not ImageNet weights
+        dropout=cfg.model.dropout,
+        pretrained=False
     ).to(device)
-
-    print(f"Loading checkpoint: {cfg.path_model}")
-    model.load_state_dict(torch.load(cfg.path_model, map_location=device))
+    
+    model.load_state_dict(checkpoint["state_dict"])
     model.eval()
 
-    # 4. Evaluation loop
-    correct: int = 0
-    total: int = 0
+    correct, total = 0, 0
     start_eval = time.time()
 
-    print("Running evaluation...")
+    print(f"🚀 Evaluating model: {cfg.path_model}")
     with torch.no_grad():
         for images, labels in val_loader:
-            images = images.to(device)
-            labels = labels.to(device)
-
-            outputs: Tensor = model(images)
-            preds: Tensor = torch.argmax(outputs, dim=1)
-
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            preds = torch.argmax(outputs, dim=1)
             correct += int((preds == labels).sum().item())
             total += int(labels.size(0))
 
-    # 5. Compute metrics
-    accuracy: float = correct / total if total > 0 else 0.0
-    duration: float = time.time() - start_eval
-
-    metrics: dict[str, object] = {
-        "validation_accuracy": accuracy,
-        "eval_duration_seconds": duration,
-        "class_names": class_names,
-    }
-
-    # 6. Persist results to disk
-    metrics_path = Path(cfg.path_metrics_eval)
-    metrics_path.parent.mkdir(parents=True, exist_ok=True)
-
-    with metrics_path.open("w") as f:
-        json.dump(metrics, f, indent=4)
-
-    print("\n--- Evaluation Results ---")
-    print(f"Accuracy: {accuracy:.4f}")
-    print(f"Time Taken: {duration:.2f}s")
-    print(f"Results saved to: {metrics_path}")
-
+    accuracy = correct / total if total > 0 else 0.0
+    duration = time.time() - start_eval
+    
+    print(f"✅ Evaluation Complete | Accuracy: {accuracy:.4f} | Time: {duration:.2f}s")
 
 if __name__ == "__main__":
-    # Allow running the evaluation script directly without Hydra launcher tools
     evaluate()

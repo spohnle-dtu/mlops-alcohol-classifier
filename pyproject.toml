@@ -26,11 +26,11 @@ dependencies = {file = ["requirements.txt"]}
 dev = {file = ['requirements_dev.txt']}
 
 [tool.setuptools]
-package-dir = {"" = "src"}
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["src*"]
 
 [tool.ruff]
 line-length = 120

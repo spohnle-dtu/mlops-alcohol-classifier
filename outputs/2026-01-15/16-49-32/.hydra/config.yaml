@@ -1,0 +1,23 @@
+seed: 42
+device: auto
+path_model: models/best_model.pt
+path_metrics_train: reports/train_metrics.json
+dataset:
+  batch_size: 32
+  val_fraction: 0.2
+  num_workers: 0
+  path_raw: data/raw
+  path_processed: data/processed
+model:
+  name: resnet18
+  dropout: 0.2
+  pretrained: true
+  freeze_backbone: false
+  lr: 0.001
+  epochs: 5
+logger:
+  project: mlops-alcohol-classifier
+  entity: s242845-danmarks-tekniske-universitet-dtu
+  group: experiment-runs
+  mode: online
+  name: run-${model.name}-${now:%Y%m%d}-${now:%H%M%S}

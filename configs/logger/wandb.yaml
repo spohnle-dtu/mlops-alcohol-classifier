@@ -1,0 +1,7 @@
+project: mlops-alcohol-classifier
+entity: s242845-danmarks-tekniske-universitet-dtu
+group: experiment-runs
+mode: online
+
+# run_id: x32nqbcx
+name: run-${model.name}-${now:%Y%m%d}-${now:%H%M%S}

@@ -178,7 +178,7 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
         range(len(dataset)),
         test_size=float(cfg.dataset.val_fraction),
         stratify=dataset.labels.tolist(),
-        random_state=int(cfg.dataset.seed),
+        random_state=int(cfg.seed),
     )
 
     train_ds: Subset[tuple[Tensor, int]] = Subset(dataset, train_idx)
@@ -207,7 +207,4 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
 
 
 if __name__ == "__main__":
-    # Running this module directly executes preprocessing via Hydra.
-    # Example:
-    #   uv run python src/alcohol_classifier/data.py
     preprocess()
