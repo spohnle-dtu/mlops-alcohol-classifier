@@ -38,4 +38,10 @@ class BeverageModel(nn.Module):
             p.requires_grad = True
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if not isinstance(x, torch.Tensor):
+            raise TypeError("Input x must be a torch.Tensor")
+        if x.ndim != 4:
+            raise ValueError(f"Expected input shape [B, C, H, W], got {tuple(x.shape)}")
+        if x.shape[1] != 3:
+            raise ValueError(f"Expected 3 channels (RGB), got C={x.shape[1]}")
         return self.backbone(x)

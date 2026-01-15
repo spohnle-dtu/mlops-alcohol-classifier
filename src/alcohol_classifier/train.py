@@ -17,21 +17,26 @@ from .model import BeverageModel
 
 @dataclass
 class TrainConfig:
+    """Configuration for training the beverage classifier."""
+    
+    # Data
     data: DataConfig = field(default_factory=DataConfig)
 
     # Model
     dropout: float = 0.5
+    pretrained: bool = True
+    freeze_backbone: bool = False
 
     # Training
     epochs: int = 10
     lr: float = 1e-3
     device: str = "auto"  # "cpu", "cuda", "mps", or "auto"
+    seed: int = 42
 
     # Outputs
     out_dir: str = "checkpoints"
     best_name: str = "best.pt"
     metrics_path: str = "reports/train_metrics.json"
-    seed: int = 42
 
 
 def _set_seed(seed: int) -> None:
@@ -114,11 +119,22 @@ def train(cfg: TrainConfig) -> None:
     train_loader, val_loader, class_names = make_dataloaders(cfg.data)
     num_classes = len(class_names)
 
-    #model = BeverageCNN(num_classes=num_classes, dropout=cfg.dropout).to(device)
-    model = BeverageModel(num_classes=num_classes, dropout=cfg.dropout, pretrained=True).to(device)
+    model = BeverageModel(
+        num_classes=num_classes,
+        dropout=cfg.dropout,
+        pretrained=cfg.pretrained,
+        freeze_backbone=cfg.freeze_backbone,
+    ).to(device)
+
+    trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total = sum(p.numel() for p in model.parameters())
+    print(f"Model: pretrained={cfg.pretrained}, freeze_backbone={cfg.freeze_backbone}")
+    print(f"Params: trainable={trainable:,} / total={total:,}")
+
+
 
     criterion = nn.CrossEntropyLoss()
-    optimizer = Adam(model.parameters(), lr=cfg.lr)
+    optimizer = Adam((p for p in model.parameters() if p.requires_grad), lr=cfg.lr)
 
     out_dir = Path(cfg.out_dir)
     best_path = out_dir / cfg.best_name
@@ -168,6 +184,10 @@ def _parse_args():
     p.add_argument("--epochs", type=int, default=10)
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--device", default="auto")
+    p.add_argument("--dropout", type=float, default=0.5)
+    p.add_argument("--freeze-backbone", action="store_true", default=False)
+    p.add_argument("--pretrained", action="store_true", default=True)
+    p.add_argument("--no-pretrained", dest="pretrained", action="store_false")
     return p.parse_args()
 
 
@@ -175,16 +195,24 @@ def _parse_args():
 if __name__ == "__main__":
     args = _parse_args()
     cfg = TrainConfig(
-        data=DataConfig(
-            processed_path=Path(args.processed_dir),
-            batch_size=args.batch_size,
-            val_fraction=args.val_fraction,
-            seed=args.seed,
-            num_workers=args.num_workers,
-        ),
-        epochs=args.epochs,
-        lr=args.lr,
-        device=args.device,
+    data=DataConfig(
+        processed_path=Path(args.processed_dir),
+        batch_size=args.batch_size,
+        val_fraction=args.val_fraction,
+        seed=args.seed,
+        num_workers=args.num_workers,
+    ),
+    # Model
+    dropout=args.dropout,
+    pretrained=args.pretrained,
+    freeze_backbone=args.freeze_backbone,
+
+    # Training
+    epochs=args.epochs,
+    lr=args.lr,
+    device=args.device,
+    seed=args.seed,
     )
+
     train(cfg)
 

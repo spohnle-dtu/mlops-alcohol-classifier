@@ -33,3 +33,12 @@ select = ["I", "N", "E", "W", ]
 
 [tool.coverage.run]
 omit = ["tests/*"]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+  "ignore:.*enablePackrat.*:DeprecationWarning",
+  "ignore:.*parseString.*:DeprecationWarning",
+  "ignore:.*resetCache.*:DeprecationWarning",
+  "ignore:.*oneOf.*:DeprecationWarning",
+]
+
