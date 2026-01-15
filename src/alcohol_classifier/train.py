@@ -9,18 +9,25 @@ import torch
 import torch.nn as nn
 from torch.optim import Adam
 
-from .data import DataConfig, make_dataloaders
+#from .data import DataConfig, make_dataloaders
+from omegaconf import OmegaConf
+from .data import make_dataloaders
+
 #from .model import BeverageCNN
 from .model import BeverageModel
 
 
 
 @dataclass
+@dataclass
 class TrainConfig:
     """Configuration for training the beverage classifier."""
-    
+
     # Data
-    data: DataConfig = field(default_factory=DataConfig)
+    processed_dir: str = "data/processed"
+    batch_size: int = 32
+    val_fraction: float = 0.2
+    num_workers: int = 0
 
     # Model
     dropout: float = 0.5
@@ -30,13 +37,14 @@ class TrainConfig:
     # Training
     epochs: int = 10
     lr: float = 1e-3
-    device: str = "auto"  # "cpu", "cuda", "mps", or "auto"
+    device: str = "auto"
     seed: int = 42
 
     # Outputs
     out_dir: str = "checkpoints"
     best_name: str = "best.pt"
     metrics_path: str = "reports/train_metrics.json"
+
 
 
 def _set_seed(seed: int) -> None:
