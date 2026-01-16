@@ -26,6 +26,7 @@ __pycache__/
 data/
 models/
 wandb/
+outputs/
 
 # Ignore local config
 .dvc/config.local
