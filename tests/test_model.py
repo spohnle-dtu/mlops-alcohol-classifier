@@ -34,9 +34,5 @@ def test_freezing_backbone_leaves_head_trainable():
     assert all(p.requires_grad for p in model.backbone.fc.parameters())
 
     # Some backbone params should be frozen
-    backbone_flags = [
-        p.requires_grad
-        for name, p in model.backbone.named_parameters()
-        if not name.startswith("fc.")
-    ]
+    backbone_flags = [p.requires_grad for name, p in model.backbone.named_parameters() if not name.startswith("fc.")]
     assert any(flag is False for flag in backbone_flags)

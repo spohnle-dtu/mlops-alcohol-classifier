@@ -1,5 +1,6 @@
 import os
 import sys
+
 from invoke import Context, task
 
 os.environ["PYTHONUTF8"] = "1"
@@ -45,11 +46,11 @@ def preprocess_data(ctx: Context) -> None:
 @task
 def train(c, lr=None, epochs=None, batch=None, freeze=False, not_pretrained=False):
     """
-    Run training with shorter arguments. 
+    Run training with shorter arguments.
     Example: inv train --lr 0.005 --epochs 20 --freeze
     """
     cmd = "python -m src.alcohol_classifier.train"
-    
+
     # Map short flags to long Hydra overrides
     if lr:
         cmd += f" model.lr={lr}"
@@ -61,18 +62,20 @@ def train(c, lr=None, epochs=None, batch=None, freeze=False, not_pretrained=Fals
         cmd += " model.freeze_backbone=True"
     if not_pretrained:
         cmd += " model.pretrained=False"
-        
+
     print(f"🚀 Running: {cmd}")
     c.run(cmd, out_stream=sys.stdout, pty=not WINDOWS, encoding="utf-8")
+
 
 @task
 def evaluate(c):
     """Run evaluation on the best saved model."""
     os.environ["PYTHONUTF8"] = "1"
     cmd = "python -m src.alcohol_classifier.evaluate"
-    
+
     print(f"🚀 Running: {cmd}")
     c.run(cmd, out_stream=sys.stdout, pty=not WINDOWS, encoding="utf-8")
+
 
 @task
 def test(ctx: Context) -> None:

@@ -1,37 +1,40 @@
 import time
-import torch
+
 import hydra
+import torch
 from omegaconf import DictConfig
 
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
 
+
 def _set_seed(seed: int) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+
 def _get_device(device: str) -> torch.device:
-    if device != "auto":                    return torch.device(device)
-    if torch.backends.mps.is_available():   return torch.device("mps")
-    if torch.cuda.is_available():           return torch.device("cuda")
-    
+    if device != "auto":
+        return torch.device(device)
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+
     return torch.device("cpu")
+
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def evaluate(cfg: DictConfig) -> None:
     _set_seed(cfg.seed)
     device = _get_device(cfg.device)
-    
+
     _, val_loader, class_names = make_dataloaders(cfg)
 
     checkpoint = torch.load(cfg.path_model, map_location=device)
-    
-    model = BeverageModel(
-        num_classes=len(class_names),
-        dropout=cfg.model.dropout,
-        pretrained=False
-    ).to(device)
-    
+
+    model = BeverageModel(num_classes=len(class_names), dropout=cfg.model.dropout, pretrained=False).to(device)
+
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
 
@@ -49,8 +52,9 @@ def evaluate(cfg: DictConfig) -> None:
 
     accuracy = correct / total if total > 0 else 0.0
     duration = time.time() - start_eval
-    
+
     print(f"✅ Evaluation Complete | Accuracy: {accuracy:.4f} | Time: {duration:.2f}s")
+
 
 if __name__ == "__main__":
     evaluate()
