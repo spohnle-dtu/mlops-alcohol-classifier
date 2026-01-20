@@ -9,7 +9,7 @@ from src.alcohol_classifier.utils import _set_seed, _get_device
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def evaluate(cfg: DictConfig) -> None:
-    _set_seed(cfg.dataset.seed)
+    _set_seed(cfg.seed)
     device = _get_device(cfg.device)
 
     _, val_loader, class_names = make_dataloaders(cfg)

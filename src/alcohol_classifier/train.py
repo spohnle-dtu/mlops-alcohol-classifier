@@ -58,7 +58,7 @@ def validate(model, loader, criterion, device) -> Tuple[float, float]:
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def train(cfg: DictConfig) -> None:
-    _set_seed(cfg.dataset.seed)
+    _set_seed(cfg.seed)
     device = _get_device(cfg.device)
 
     wandb.init(
