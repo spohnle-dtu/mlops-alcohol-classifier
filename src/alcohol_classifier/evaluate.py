@@ -11,17 +11,17 @@ from src.alcohol_classifier.utils import _set_seed, _get_device
 def evaluate(cfg: DictConfig) -> None:
     _set_seed(cfg.dataset.seed)
     device = _get_device(cfg.device)
-    
+
     _, val_loader, class_names = make_dataloaders(cfg)
 
     checkpoint = torch.load(cfg.path_model, map_location=device)
-    
+
     model = BeverageModel(
         num_classes=len(class_names),
         dropout=cfg.model.dropout,
         pretrained=False
     ).to(device)
-    
+
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
 
@@ -39,7 +39,7 @@ def evaluate(cfg: DictConfig) -> None:
 
     accuracy = correct / total if total > 0 else 0.0
     duration = time.time() - start_eval
-    
+
     print(f"✅ Evaluation Complete | Accuracy: {accuracy:.4f} | Time: {duration:.2f}s")
 
 if __name__ == "__main__":

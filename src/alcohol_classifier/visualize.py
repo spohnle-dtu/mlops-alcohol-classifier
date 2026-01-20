@@ -22,7 +22,7 @@ def denormalize(tensor: torch.Tensor):
 def sample_prediction(cfg: DictConfig) -> None:
     _set_seed(cfg.seed)
     device = _get_device(cfg.device)
-    
+
     # We only need the dataset object and class names here
     _, val_loader, class_names = make_dataloaders(cfg)
     dataset = val_loader.dataset
@@ -34,7 +34,7 @@ def sample_prediction(cfg: DictConfig) -> None:
         dropout=cfg.model.dropout,
         pretrained=False
     ).to(device)
-    
+
     # Handle both lightning and standard state_dicts
     state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
     model.load_state_dict(state_dict)
@@ -43,7 +43,7 @@ def sample_prediction(cfg: DictConfig) -> None:
     # SOLUTION: Pick a random index from the WHOLE dataset
     random_idx = torch.randint(0, len(dataset), (1,)).item()
     img_tensor, true_label_idx = dataset[random_idx]
-    
+
     # Prepare image for model (add batch dimension: [C, H, W] -> [1, C, H, W])
     input_tensor = img_tensor.unsqueeze(0).to(device)
 
@@ -63,7 +63,7 @@ def sample_prediction(cfg: DictConfig) -> None:
     # Plotting
     plt.figure(figsize=(8, 6))
     plt.imshow(vis_img)
-    plt.title(f"True: {true_name} | Pred: {pred_name}", 
+    plt.title(f"True: {true_name} | Pred: {pred_name}",
               color=("green" if true_name == pred_name else "red"))
     plt.axis("off")
     plt.tight_layout()

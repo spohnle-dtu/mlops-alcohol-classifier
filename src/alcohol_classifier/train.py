@@ -72,7 +72,7 @@ def train(cfg: DictConfig) -> None:
     wandb.define_metric("*", step_metric="epoch")
 
     train_loader, val_loader, class_names = make_dataloaders(cfg)
-    
+
     model = BeverageModel(
         num_classes=len(class_names),
         dropout=cfg.model.dropout,
@@ -112,7 +112,7 @@ def train(cfg: DictConfig) -> None:
             torch.save({"state_dict": model.state_dict(), "class_names": class_names}, cfg.path_model)
 
     wandb.finish()
-    
+
     print(f"✅ Saved best checkpoint to: {cfg.path_model}")
     print(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
 
