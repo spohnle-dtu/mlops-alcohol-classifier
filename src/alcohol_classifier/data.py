@@ -52,14 +52,12 @@ class AlcDataset(Dataset[tuple[Tensor, int]]):
         """
         image = self.images[idx]
         label = int(self.labels[idx].item())
+
         return image, label
 
 
 def get_transforms() -> transforms.Compose:
     """Create image preprocessing transforms.
-
-    We resize and normalize images to match ImageNet preprocessing, which is the default
-    for most pretrained backbones (e.g., ResNet). This improves transfer learning stability.
 
     Returns:
         A torchvision transforms.Compose object.
@@ -68,13 +66,15 @@ def get_transforms() -> transforms.Compose:
     return transforms.Compose(
         [
             transforms.Resize((224, 224)),
-            # Optional augmentation can be enabled later if needed.
-            # transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.ColorJitter(brightness=0.2, contrast=0.2),
             transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            # transforms.Resize((224, 224)),
+            # transforms.ToTensor(),
+            # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
-
 
 def robust_loader(path: str | Path) -> Image.Image:
     """Load an image robustly and convert to RGB.

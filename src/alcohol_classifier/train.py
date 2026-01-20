@@ -10,17 +10,7 @@ import wandb
 
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
-
-def _set_seed(seed: int) -> None:
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-
-def _get_device(device: str) -> torch.device:
-    if device != "auto":                    return torch.device(device)
-    if torch.backends.mps.is_available():   return torch.device("mps")
-    if torch.cuda.is_available():           return torch.device("cuda")
-    
-    return torch.device("cpu")
+from src.alcohol_classifier.utils import _set_seed, _get_device
 
 def train_one_epoch(model, loader, optimizer, criterion, device) -> Tuple[float, float]:
     model.train()
