@@ -1,5 +1,5 @@
 name: "resnet18"
-dropout: 0.3
+dropout: 0.5
 pretrained: true
 freeze_backbone: false
 
