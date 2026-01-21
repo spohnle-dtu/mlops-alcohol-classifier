@@ -119,7 +119,5 @@ def train(cfg: DictConfig) -> None:
     logger.info(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
 
 
-
-
 if __name__ == "__main__":
     train()

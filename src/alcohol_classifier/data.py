@@ -71,12 +71,13 @@ def get_transforms() -> transforms.Compose:
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ColorJitter(brightness=0.2, contrast=0.2),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             # transforms.Resize((224, 224)),
             # transforms.ToTensor(),
             # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
+
 
 def robust_loader(path: str | Path) -> Image.Image:
     """Load an image robustly and convert to RGB.
