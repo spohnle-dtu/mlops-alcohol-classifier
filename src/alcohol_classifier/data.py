@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from loguru import logger
+
 import warnings
 from pathlib import Path
+from typing import Any
 
 import hydra
 import torch
@@ -62,19 +65,20 @@ def get_transforms() -> transforms.Compose:
         A torchvision transforms.Compose object.
     """
 
+    logger.info("Rezinging images to 224x224 and normalizing with ImageNet stats.")
+
     return transforms.Compose(
         [
             transforms.Resize((224, 224)),
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ColorJitter(brightness=0.2, contrast=0.2),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
             # transforms.Resize((224, 224)),
             # transforms.ToTensor(),
             # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
-
 
 def robust_loader(path: str | Path) -> Image.Image:
     """Load an image robustly and convert to RGB.
@@ -109,8 +113,8 @@ def preprocess(cfg: DictConfig) -> None:
         None
     """
 
-    print(f"Preprocessing images from {cfg.dataset.path_raw}...")
-
+    logger.info(f"Preprocessing started")
+    logger.info(f"Preprocessing images from {cfg.dataset.path_raw}...")
     raw_dataset = datasets.ImageFolder(
         root=cfg.dataset.path_raw,
         transform=get_transforms(),
@@ -133,7 +137,7 @@ def preprocess(cfg: DictConfig) -> None:
     # Persist class names so downstream steps can map indices -> readable labels.
     torch.save(raw_dataset.classes, processed_path / "classes.pt")
 
-    print(f"✅ Preprocessing complete. Files saved in {processed_path}")
+    logger.info(f"✅ Preprocessing complete. Files saved in {processed_path}")
 
 
 def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]]:
@@ -165,6 +169,7 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
     classes_file = processed_path / "classes.pt"
 
     if not images_file.exists() or not labels_file.exists() or not classes_file.exists():
+        logger.error("There's been a mistake with the process. Processed data not found.")
         raise FileNotFoundError(
             "Processed data not found. Run preprocessing first: `uv run python src/alcohol_classifier/data.py` "
             "(or the equivalent invoke task) to generate data/processed/*.pt files."
@@ -173,6 +178,7 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
     dataset = AlcDataset(images_file, labels_file)
     class_names: list[str] = torch.load(classes_file)
 
+    logger.info("Splitting into train/val sets...")
     # Split into train/val indices.
     train_idx, val_idx = train_test_split(
         range(len(dataset)),
@@ -202,7 +208,8 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
         pin_memory=pin_memory,
     )
 
-    print("✅ Dataloaders successfully created.")
+    # print("✅ Dataloaders successfully created.")
+    logger.info("✅ Dataloaders successfully created.")
     return train_loader, val_loader, class_names
 
 

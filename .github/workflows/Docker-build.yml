@@ -1,0 +1,45 @@
+name: Docker Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "dockerfiles/**"
+      - "src/**"
+      - "requirements*.txt"
+      - "pyproject.toml"
+  push:
+    branches: ["main"]
+    paths:
+      - "dockerfiles/**"
+      - "src/**"
+      - "requirements*.txt"
+      - "pyproject.toml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: app
+            dockerfile: dockerfiles/Dockerfile
+            tag: alcohol-classifier:ci
+          - name: api
+            dockerfile: dockerfiles/api.Dockerfile
+            tag: alcohol-api:ci
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.target.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.target.dockerfile }}
+          push: false
+          tags: ${{ matrix.target.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

@@ -4,6 +4,8 @@ import hydra
 import torch
 from omegaconf import DictConfig
 
+from loguru import logger
+
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
 from src.alcohol_classifier.utils import _get_device, _set_seed
@@ -11,9 +13,11 @@ from src.alcohol_classifier.utils import _get_device, _set_seed
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def evaluate(cfg: DictConfig) -> None:
-    _set_seed(cfg.seed)
-    device = _get_device(cfg.device)
+    logger.info("Evaluation started")
 
+    _set_seed(cfg.dataset.seed)
+    device = _get_device(cfg.device)
+    
     _, val_loader, class_names = make_dataloaders(cfg)
 
     checkpoint = torch.load(cfg.path_model, map_location=device)
@@ -26,7 +30,7 @@ def evaluate(cfg: DictConfig) -> None:
     correct, total = 0, 0
     start_eval = time.time()
 
-    print(f"🚀 Evaluating model: {cfg.path_model}")
+    logger.info(f"🚀 Evaluating model: {cfg.path_model}")
     with torch.no_grad():
         for images, labels in val_loader:
             images, labels = images.to(device), labels.to(device)
@@ -38,7 +42,7 @@ def evaluate(cfg: DictConfig) -> None:
     accuracy = correct / total if total > 0 else 0.0
     duration = time.time() - start_eval
 
-    print(f"✅ Evaluation Complete | Accuracy: {accuracy:.4f} | Time: {duration:.2f}s")
+    logger.info(f"✅ Evaluation Complete | Accuracy: {accuracy:.4f} | Time: {duration:.2f}s")
 
 
 if __name__ == "__main__":

@@ -61,7 +61,9 @@ def validate(model, loader, criterion, device) -> Tuple[float, float]:
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def train(cfg: DictConfig) -> None:
-    _set_seed(cfg.seed)
+    logger.info("Training started.")
+
+    _set_seed(cfg.dataset.seed)
     device = _get_device(cfg.device)
 
     wandb.init(
@@ -75,7 +77,7 @@ def train(cfg: DictConfig) -> None:
     wandb.define_metric("*", step_metric="epoch")
 
     train_loader, val_loader, class_names = make_dataloaders(cfg)
-
+    
     model = BeverageModel(
         num_classes=len(class_names),
         dropout=cfg.model.dropout,
@@ -112,8 +114,10 @@ def train(cfg: DictConfig) -> None:
 
     wandb.finish()
 
-    print(f"✅ Saved best checkpoint to: {cfg.path_model}")
-    print(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
+    logger.info(f"✅ Saved best checkpoint to: {cfg.path_model}")
+    logger.info(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
+
+
 
 
 if __name__ == "__main__":
