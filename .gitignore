@@ -191,4 +191,5 @@ cython_debug/
 # Runtime outputs
 outputs/
 models/
-data/
+data/*
+!data/*.dvc
