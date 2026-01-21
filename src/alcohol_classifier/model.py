@@ -7,7 +7,7 @@ class BeverageModel(nn.Module):
     """
     ResNet18 transfer-learning model for 3-class classification.
 
-    - Input: (B, 3, H, W) with H=W=224 
+    - Input: (B, 3, H, W) with H=W=224
     - Output: (B, num_classes) logits
     """
 
