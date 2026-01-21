@@ -4,6 +4,7 @@ from typing import Tuple
 import hydra
 import torch
 import torch.nn as nn
+from loguru import logger
 from omegaconf import DictConfig, OmegaConf
 from torch.optim import Adam
 
@@ -77,7 +78,7 @@ def train(cfg: DictConfig) -> None:
     wandb.define_metric("*", step_metric="epoch")
 
     train_loader, val_loader, class_names = make_dataloaders(cfg)
-    
+
     model = BeverageModel(
         num_classes=len(class_names),
         dropout=cfg.model.dropout,

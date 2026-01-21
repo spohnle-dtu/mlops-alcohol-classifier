@@ -1,4 +1,5 @@
-from locust import HttpUser, task, between
+from locust import HttpUser, between, task
+
 
 class BeverageApiUser(HttpUser):
     # Simulate a user waiting between 1 and 2 seconds between requests

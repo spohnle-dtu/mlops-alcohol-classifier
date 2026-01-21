@@ -2,9 +2,8 @@ import time
 
 import hydra
 import torch
-from omegaconf import DictConfig
-
 from loguru import logger
+from omegaconf import DictConfig
 
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
@@ -17,7 +16,7 @@ def evaluate(cfg: DictConfig) -> None:
 
     _set_seed(cfg.dataset.seed)
     device = _get_device(cfg.device)
-    
+
     _, val_loader, class_names = make_dataloaders(cfg)
 
     checkpoint = torch.load(cfg.path_model, map_location=device)

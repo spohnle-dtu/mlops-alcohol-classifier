@@ -1,6 +1,8 @@
 # tests/test_api.py
 from fastapi.testclient import TestClient
+
 from src.alcohol_classifier.api import app
+
 
 def test_read_health():
     """Test the health check endpoint while the model is loaded."""

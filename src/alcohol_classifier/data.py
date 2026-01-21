@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from loguru import logger
-
 import warnings
 from pathlib import Path
-from typing import Any
 
 import hydra
 import torch
+from loguru import logger
 from omegaconf import DictConfig
 from PIL import Image
 from sklearn.model_selection import train_test_split
@@ -113,7 +111,7 @@ def preprocess(cfg: DictConfig) -> None:
         None
     """
 
-    logger.info(f"Preprocessing started")
+    logger.info("Preprocessing started")
     logger.info(f"Preprocessing images from {cfg.dataset.path_raw}...")
     raw_dataset = datasets.ImageFolder(
         root=cfg.dataset.path_raw,
