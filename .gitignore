@@ -23,7 +23,8 @@ __pycache__/
 *$py.class
 
 # Ignore data and models folder
-data/
+data/*
+!data/*.dvc
 models/
 wandb/
 outputs/
@@ -188,8 +189,3 @@ cython_debug/
 #.idea/
 /models
 
-# Runtime outputs
-outputs/
-models/
-data/*
-!data/*.dvc
