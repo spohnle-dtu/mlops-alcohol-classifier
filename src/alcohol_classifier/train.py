@@ -8,6 +8,8 @@ import hydra
 from omegaconf import DictConfig, OmegaConf
 import wandb
 
+from loguru import logger
+
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
 
@@ -68,6 +70,8 @@ def validate(model, loader, criterion, device) -> Tuple[float, float]:
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def train(cfg: DictConfig) -> None:
+    logger.info("Training started.")
+
     _set_seed(cfg.dataset.seed)
     device = _get_device(cfg.device)
 
@@ -122,9 +126,11 @@ def train(cfg: DictConfig) -> None:
             torch.save({"state_dict": model.state_dict(), "class_names": class_names}, cfg.path_model)
 
     wandb.finish()
-    
-    print(f"✅ Saved best checkpoint to: {cfg.path_model}")
-    print(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
+
+    logger.info(f"✅ Saved best checkpoint to: {cfg.path_model}")
+    logger.info(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
+
+
 
 if __name__ == "__main__":
     train()
