@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import warnings
 from pathlib import Path
-from typing import Any
 
 import hydra
 import torch
@@ -178,7 +177,7 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
         range(len(dataset)),
         test_size=float(cfg.dataset.val_fraction),
         stratify=dataset.labels.tolist(),
-        random_state=int(cfg.seed),
+        random_state=int(cfg.dataset.seed),
     )
 
     train_ds: Subset[tuple[Tensor, int]] = Subset(dataset, train_idx)

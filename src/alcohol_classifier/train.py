@@ -1,16 +1,17 @@
-import json
 from pathlib import Path
 from typing import Tuple
+
+import hydra
 import torch
 import torch.nn as nn
-from torch.optim import Adam
-import hydra
-from omegaconf import DictConfig, OmegaConf
 import wandb
+from omegaconf import DictConfig, OmegaConf
+from torch.optim import Adam
 
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
 from src.alcohol_classifier.utils import _set_seed, _get_device
+
 
 def train_one_epoch(model, loader, optimizer, criterion, device) -> Tuple[float, float]:
     model.train()
@@ -35,6 +36,7 @@ def train_one_epoch(model, loader, optimizer, criterion, device) -> Tuple[float,
 
     return total_loss / max(total, 1), correct / max(total, 1)
 
+
 @torch.no_grad()
 def validate(model, loader, criterion, device) -> Tuple[float, float]:
     model.eval()
@@ -56,6 +58,7 @@ def validate(model, loader, criterion, device) -> Tuple[float, float]:
 
     return total_loss / max(total, 1), correct / max(total, 1)
 
+
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def train(cfg: DictConfig) -> None:
     _set_seed(cfg.seed)
@@ -66,7 +69,7 @@ def train(cfg: DictConfig) -> None:
         entity=cfg.logger.entity,
         group=cfg.logger.group,
         name=cfg.logger.name,
-        config=OmegaConf.to_container(cfg, resolve=True)
+        config=OmegaConf.to_container(cfg, resolve=True),
     )
     wandb.define_metric("epoch")
     wandb.define_metric("*", step_metric="epoch")
@@ -94,11 +97,7 @@ def train(cfg: DictConfig) -> None:
         tr_loss, tr_acc = train_one_epoch(model, train_loader, optimizer, criterion, device)
         va_loss, va_acc = validate(model, val_loader, criterion, device)
 
-        wandb.log({
-            "epoch": epoch,
-            "train/loss": tr_loss, "train/acc": tr_acc,
-            "val/loss": va_loss, "val/acc": va_acc
-        })
+        wandb.log({"epoch": epoch, "train/loss": tr_loss, "train/acc": tr_acc, "val/loss": va_loss, "val/acc": va_acc})
 
         print(
             f"[{epoch:02d}/{cfg.model.epochs}] "
@@ -115,6 +114,7 @@ def train(cfg: DictConfig) -> None:
 
     print(f"✅ Saved best checkpoint to: {cfg.path_model}")
     print(f"✅ Logged training metrics as: {cfg.logger.name} in {cfg.logger.group}")
+
 
 if __name__ == "__main__":
     train()

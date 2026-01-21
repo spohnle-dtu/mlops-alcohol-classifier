@@ -1,11 +1,13 @@
 import time
-import torch
+
 import hydra
+import torch
 from omegaconf import DictConfig
 
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
 from src.alcohol_classifier.utils import _set_seed, _get_device
+
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def evaluate(cfg: DictConfig) -> None:
@@ -41,6 +43,7 @@ def evaluate(cfg: DictConfig) -> None:
     duration = time.time() - start_eval
 
     print(f"✅ Evaluation Complete | Accuracy: {accuracy:.4f} | Time: {duration:.2f}s")
+
 
 if __name__ == "__main__":
     evaluate()
