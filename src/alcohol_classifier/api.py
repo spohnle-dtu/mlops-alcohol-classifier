@@ -42,8 +42,7 @@ def _load_checkpoint(path: Path) -> tuple[BeverageModel, list[str]]:
             path = candidates[0]
         else:
             raise FileNotFoundError(
-                f"Model checkpoint not found at {path}. "
-                f"Set MODEL_PATH env var or put a .pt/.pth file in models/."
+                f"Model checkpoint not found at {path}. Set MODEL_PATH env var or put a .pt/.pth file in models/."
             )
 
     ckpt: dict[str, Any] = torch.load(path, map_location="cpu")
@@ -88,4 +87,3 @@ async def predict(image: UploadFile = File(...)):
         "predicted_class": _class_names[pred_idx],
         "probabilities": {name: float(p) for name, p in zip(_class_names, probs)},
     }
-

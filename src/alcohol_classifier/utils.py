@@ -6,6 +6,7 @@ def _set_seed(seed: int) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+
 def _get_device(device: str) -> torch.device:
     if device != "auto":
         print(f"Using device: {device}")

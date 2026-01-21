@@ -19,6 +19,7 @@ def denormalize(tensor: torch.Tensor):
     std = torch.tensor([0.229, 0.224, 0.225]).view(3, 1, 1)
     return tensor * std + mean
 
+
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
 def sample_prediction(cfg: DictConfig) -> None:
     _set_seed(cfg.seed)
@@ -30,11 +31,7 @@ def sample_prediction(cfg: DictConfig) -> None:
 
     # Load Model
     checkpoint = torch.load(cfg.path_model, map_location=device)
-    model = BeverageModel(
-        num_classes=len(class_names),
-        dropout=cfg.model.dropout,
-        pretrained=False
-    ).to(device)
+    model = BeverageModel(num_classes=len(class_names), dropout=cfg.model.dropout, pretrained=False).to(device)
 
     # Handle both lightning and standard state_dicts
     state_dict = checkpoint["state_dict"] if "state_dict" in checkpoint else checkpoint
@@ -56,7 +53,7 @@ def sample_prediction(cfg: DictConfig) -> None:
     # Convert back for Matplotlib
     # 1. Denormalize 2. Move to CPU 3. Permute to [H, W, C]
     vis_img = denormalize(img_tensor).cpu().permute(1, 2, 0).numpy()
-    vis_img = vis_img.clip(0, 1) # Ensure values stay in valid RGB range
+    vis_img = vis_img.clip(0, 1)  # Ensure values stay in valid RGB range
 
     true_name = class_names[true_label_idx]
     pred_name = class_names[pred_label_idx]
@@ -64,8 +61,7 @@ def sample_prediction(cfg: DictConfig) -> None:
     # Plotting
     plt.figure(figsize=(8, 6))
     plt.imshow(vis_img)
-    plt.title(f"True: {true_name} | Pred: {pred_name}",
-              color=("green" if true_name == pred_name else "red"))
+    plt.title(f"True: {true_name} | Pred: {pred_name}", color=("green" if true_name == pred_name else "red"))
     plt.axis("off")
     plt.tight_layout()
     plt.show()
@@ -125,6 +121,7 @@ def plot_confusion_matrix(cm: torch.Tensor, class_names: Sequence[str], out_path
     fig.tight_layout()
     fig.savefig(out, dpi=200)
     plt.close(fig)
+
 
 if __name__ == "__main__":
     sample_prediction()

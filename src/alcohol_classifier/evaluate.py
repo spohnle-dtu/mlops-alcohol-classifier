@@ -18,11 +18,7 @@ def evaluate(cfg: DictConfig) -> None:
 
     checkpoint = torch.load(cfg.path_model, map_location=device)
 
-    model = BeverageModel(
-        num_classes=len(class_names),
-        dropout=cfg.model.dropout,
-        pretrained=False
-    ).to(device)
+    model = BeverageModel(num_classes=len(class_names), dropout=cfg.model.dropout, pretrained=False).to(device)
 
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
