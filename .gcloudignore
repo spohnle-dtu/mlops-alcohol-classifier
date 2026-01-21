@@ -1,0 +1,17 @@
+# Start from the same defaults as gitignore behavior
+# (Cloud Build will read this file instead of auto-deriving)
+
+# Ignore git + caches etc (optional but good)
+.git
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.DS_Store
+
+# Include the model even though .gitignore ignores *.pt ---
+!checkpoints/
+!checkpoints/**
+!checkpoints/best.pt
+
