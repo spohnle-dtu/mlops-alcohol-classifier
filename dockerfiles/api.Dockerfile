@@ -21,4 +21,3 @@ ENV MODEL_PATH=/app/checkpoints/best.pt
 
 # Cloud Run listens on $PORT (provided at runtime). Fallback for local runs.
 CMD ["bash", "-lc", "python -m uvicorn alcohol_classifier.api:app --host 0.0.0.0 --port ${PORT:-8080}"]
-
