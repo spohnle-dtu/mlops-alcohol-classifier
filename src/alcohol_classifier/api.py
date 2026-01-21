@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from PIL import Image
 from torchvision import transforms
 

@@ -4,13 +4,13 @@ from typing import Tuple
 import hydra
 import torch
 import torch.nn as nn
-import wandb
 from omegaconf import DictConfig, OmegaConf
 from torch.optim import Adam
 
+import wandb
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
-from src.alcohol_classifier.utils import _set_seed, _get_device
+from src.alcohol_classifier.utils import _get_device, _set_seed
 
 
 def train_one_epoch(model, loader, optimizer, criterion, device) -> Tuple[float, float]:

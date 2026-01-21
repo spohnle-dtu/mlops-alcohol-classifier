@@ -3,14 +3,15 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Sequence
 
-import matplotlib.pyplot as plt
-from omegaconf import DictConfig
-import torch
 import hydra
+import matplotlib.pyplot as plt
+import torch
+from omegaconf import DictConfig
 
 from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
-from src.alcohol_classifier.utils import _set_seed, _get_device
+from src.alcohol_classifier.utils import _get_device, _set_seed
+
 
 def denormalize(tensor: torch.Tensor):
     """Reverses ImageNet normalization for visualization."""
