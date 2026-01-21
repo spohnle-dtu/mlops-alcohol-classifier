@@ -15,8 +15,8 @@ from .model import BeverageModel
 app = FastAPI(title="BeverageModel API")
 
 # ---- config ----
-MODEL_PATH = Path(os.getenv("MODEL_PATH", "models/model.pt"))
-DEVICE = "cpu"  # Cloud Run default; you can switch later if needed
+MODEL_PATH = Path(os.getenv("MODEL_PATH", "checkpoints/best.pt"))
+DEVICE = "cpu"  # Cloud Run default
 
 # ---- preprocessing (matches ResNet18 expectations) ----
 _preprocess = transforms.Compose(

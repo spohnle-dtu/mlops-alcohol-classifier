@@ -12,8 +12,11 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 COPY src /app/src
 COPY configs /app/configs
 COPY pyproject.toml /app/pyproject.toml
+COPY checkpoints /app/checkpoints
 
 ENV PYTHONPATH=/app/src
 ENV HYDRA_FULL_ERROR=1
+ENV MODEL_PATH=/app/checkpoints/best.pt
+
 
 CMD ["python", "-c", "print('Container ready. Example: python -m alcohol_classifier.train')"]
