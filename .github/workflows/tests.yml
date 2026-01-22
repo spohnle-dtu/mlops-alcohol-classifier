@@ -27,6 +27,8 @@ on:
 jobs:
   test:
     runs-on: ${{ matrix.os }}
+    env:
+      MODEL_PATH: models/best_model.pt
 
     strategy:
       fail-fast: false
@@ -60,3 +62,5 @@ jobs:
       - name: Run tests
         run: |
           pytest -q
+        env:
+            MODEL_PATH: models/best_model.pt
