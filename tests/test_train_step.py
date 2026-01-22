@@ -11,7 +11,6 @@ from src.alcohol_classifier.data import make_dataloaders
 from src.alcohol_classifier.model import BeverageModel
 from src.alcohol_classifier.train import train_one_epoch
 
-
 # #def _seed_tiny_processed_set(processed_dir: Path, n: int = 16, k: int = 3) -> None:
 #     processed_dir.mkdir(parents=True, exist_ok=True)
 #     images = torch.rand(n, 3, 224, 224)
@@ -20,6 +19,7 @@ from src.alcohol_classifier.train import train_one_epoch
 #     torch.save(images, processed_dir / "images.pt")
 #     torch.save(labels, processed_dir / "labels.pt")
 #     torch.save(classes, processed_dir / "classes.pt")
+
 
 def _seed_tiny_processed_set(processed_dir: Path, n: int = 16, k: int = 3) -> None:
     processed_dir.mkdir(parents=True, exist_ok=True)
@@ -45,7 +45,6 @@ def _seed_tiny_processed_set(processed_dir: Path, n: int = 16, k: int = 3) -> No
     torch.save(images, processed_dir / "images.pt")
     torch.save(labels, processed_dir / "labels.pt")
     torch.save(classes, processed_dir / "classes.pt")
-
 
 
 def _cfg(processed_dir: Path, *, batch_size=8, val_fraction=0.25, seed=0, num_workers=0):

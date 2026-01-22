@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import warnings
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 
 import hydra
 import torch
@@ -186,15 +186,14 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
 
     if not can_stratify:
         logger.warning(
-            "Stratified split disabled because at least one class has <2 samples. "
-            f"class_counts={dict(counts)}"
+            f"Stratified split disabled because at least one class has <2 samples. class_counts={dict(counts)}"
         )
     train_idx, val_idx = train_test_split(
-    range(len(dataset)),
-    test_size=float(cfg.dataset.val_fraction),
-    stratify=labels if can_stratify else None,
-    random_state=int(cfg.dataset.seed),
-)
+        range(len(dataset)),
+        test_size=float(cfg.dataset.val_fraction),
+        stratify=labels if can_stratify else None,
+        random_state=int(cfg.dataset.seed),
+    )
 
     train_ds: Subset[tuple[Tensor, int]] = Subset(dataset, train_idx)
     val_ds: Subset[tuple[Tensor, int]] = Subset(dataset, val_idx)
