@@ -1,91 +1,47 @@
-from __future__ import annotations
-
+# src/alcohol_classifier/api.py
 import io
-import os
-from pathlib import Path
-from typing import Any
-
-import torch
-from fastapi import FastAPI, UploadFile, File, HTTPException
+import numpy as np
+import onnxruntime as ort
+from fastapi import FastAPI, File, UploadFile
 from PIL import Image
-from torchvision import transforms
 
-from .model import BeverageModel
+app = FastAPI(title="Alcohol Classifier API (ONNX)")
 
-app = FastAPI(title="BeverageModel API")
+MODEL_PATH = "models/model.onnx"
+ort_session = ort.InferenceSession(MODEL_PATH)
 
-# ---- config ----
-MODEL_PATH = Path(os.getenv("MODEL_PATH", "checkpoints/best.pt"))
-DEVICE = "cpu"  # Cloud Run default
+input_name = ort_session.get_inputs()[0].name
+output_name = ort_session.get_outputs()[0].name
 
-# ---- preprocessing (matches ResNet18 expectations) ----
-_preprocess = transforms.Compose(
-    [
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(
-            mean=[0.485, 0.456, 0.406],
-            std=[0.229, 0.224, 0.225],
-        ),
-    ]
-)
+def preprocess_image(image_bytes: bytes):
+    """Prepares raw image bytes for the ResNet18 ONNX model."""
+    img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-_model: BeverageModel | None = None
-_class_names: list[str] | None = None
+    img = img.resize((224, 224))
 
+    img_data = np.array(img).astype(np.float32) / 255.0
 
-def _load_checkpoint(path: Path) -> tuple[BeverageModel, list[str]]:
-    if not path.exists():
-        # helpful fallback: pick first checkpoint if user didn’t set MODEL_PATH
-        candidates = list(Path("models").glob("*.pt")) + list(Path("models").glob("*.pth"))
-        if candidates:
-            path = candidates[0]
-        else:
-            raise FileNotFoundError(
-                f"Model checkpoint not found at {path}. "
-                f"Set MODEL_PATH env var or put a .pt/.pth file in models/."
-            )
-
-    ckpt: dict[str, Any] = torch.load(path, map_location="cpu")
-    class_names = ckpt.get("class_names", ["class0", "class1", "class2"])
-
-    model = BeverageModel(num_classes=len(class_names), pretrained=False)
-    model.load_state_dict(ckpt["state_dict"])
-    model.eval()
-    return model, list(class_names)
-
-
-@app.on_event("startup")
-def startup():
-    global _model, _class_names
-    _model, _class_names = _load_checkpoint(MODEL_PATH)
-
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "model_loaded": _model is not None}
-
+    img_data = np.transpose(img_data, (2, 0, 1))
+    img_data = np.expand_dims(img_data, axis=0)
+    return img_data
 
 @app.post("/predict")
-async def predict(image: UploadFile = File(...)):
-    if _model is None or _class_names is None:
-        raise HTTPException(status_code=500, detail="Model not loaded")
+async def predict(file: UploadFile = File(...)):
+    image_bytes = await file.read()
+    input_tensor = preprocess_image(image_bytes)
 
-    if image.content_type not in ("image/jpeg", "image/png", "image/webp"):
-        raise HTTPException(status_code=400, detail="Upload a JPEG/PNG/WEBP image")
+    outputs = ort_session.run([output_name], {input_name: input_tensor})
 
-    img_bytes = await image.read()
-    img = Image.open(io.BytesIO(img_bytes)).convert("RGB")
+    logits = outputs[0]
+    predicted_class_idx = int(np.argmax(logits))
+    confidence = float(np.max(np.exp(logits) / np.sum(np.exp(logits)))) # Softmax
 
-    x = _preprocess(img).unsqueeze(0)  # (1, 3, 224, 224)
-
-    with torch.no_grad():
-        logits = _model(x)
-        probs = torch.softmax(logits, dim=1).squeeze(0).tolist()
-
-    pred_idx = int(torch.tensor(probs).argmax().item())
     return {
-        "predicted_class": _class_names[pred_idx],
-        "probabilities": {name: float(p) for name, p in zip(_class_names, probs)},
+        "prediction": predicted_class_idx,
+        "confidence": round(confidence, 4),
+        "engine": "ONNX Runtime"
     }
 
+@app.get("/")
+def root():
+    return {"message": "Alcohol Classifier API is running on ONNX!"}
