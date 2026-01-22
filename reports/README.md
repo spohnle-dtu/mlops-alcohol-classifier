@@ -123,7 +123,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 1 fill here ---
+149
 
 ### Question 2
 > **Enter the study number for each member in the group**
@@ -134,7 +134,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 2 fill here ---
+s204151, sXXXXXX, sXXXXXX, sXXXXXX, sXXXXXX
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
@@ -148,7 +148,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 3 fill here ---
+We used pre-trained ResNet18 for the computer-vision part of the project and then used transfer-learning to make it fit a 3-class classification problem.
 
 ## Coding environment
 
@@ -248,7 +248,8 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
---- question 9 fill here ---
+We made use of Branches in this project, each member had their own branch to work on with new functionality. To commit new code, the main branch was first pulled to get the latest updates and then merged into the member's branch to resolve any conflicts. Then a clean merge was done into the main branch.
+Prs was not used in this project, but could've been used to allow other group members to review the code before commiting it, ensuring higher code quality and fewer bugs by suggesting improvements.
 
 ### Question 10
 
