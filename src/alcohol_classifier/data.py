@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from loguru import logger
-
 import warnings
+from collections import Counter
 from pathlib import Path
-from typing import Any
 
 import hydra
 import torch
+from loguru import logger
 from omegaconf import DictConfig
 from PIL import Image
 from sklearn.model_selection import train_test_split
@@ -73,12 +72,13 @@ def get_transforms() -> transforms.Compose:
             transforms.RandomHorizontalFlip(p=0.5),
             transforms.ColorJitter(brightness=0.2, contrast=0.2),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
             # transforms.Resize((224, 224)),
             # transforms.ToTensor(),
             # transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ]
     )
+
 
 def robust_loader(path: str | Path) -> Image.Image:
     """Load an image robustly and convert to RGB.
@@ -113,7 +113,7 @@ def preprocess(cfg: DictConfig) -> None:
         None
     """
 
-    logger.info(f"Preprocessing started")
+    logger.info("Preprocessing started")
     logger.info(f"Preprocessing images from {cfg.dataset.path_raw}...")
     raw_dataset = datasets.ImageFolder(
         root=cfg.dataset.path_raw,
@@ -179,11 +179,19 @@ def make_dataloaders(cfg: DictConfig) -> tuple[DataLoader, DataLoader, list[str]
     class_names: list[str] = torch.load(classes_file)
 
     logger.info("Splitting into train/val sets...")
-    # Split into train/val indices.
+
+    labels = dataset.labels.tolist()
+    counts = Counter(labels)
+    can_stratify = min(counts.values()) >= 2
+
+    if not can_stratify:
+        logger.warning(
+            f"Stratified split disabled because at least one class has <2 samples. class_counts={dict(counts)}"
+        )
     train_idx, val_idx = train_test_split(
         range(len(dataset)),
         test_size=float(cfg.dataset.val_fraction),
-        stratify=dataset.labels.tolist(),
+        stratify=labels if can_stratify else None,
         random_state=int(cfg.dataset.seed),
     )
 

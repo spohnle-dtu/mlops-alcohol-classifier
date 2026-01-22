@@ -1,5 +1,6 @@
 import os
 import sys
+
 from invoke import Context, task
 
 os.environ["PYTHONUTF8"] = "1"
@@ -65,6 +66,7 @@ def train(c, lr=None, epochs=None, batch=None, freeze=False, not_pretrained=Fals
     print(f"🚀 Running: {cmd}")
     c.run(cmd, out_stream=sys.stdout, pty=not WINDOWS, encoding="utf-8")
 
+
 @task
 def evaluate(c):
     """Run evaluation on the best saved model."""
@@ -73,6 +75,7 @@ def evaluate(c):
 
     print(f"🚀 Running: {cmd}")
     c.run(cmd, out_stream=sys.stdout, pty=not WINDOWS, encoding="utf-8")
+
 
 @task
 def test(ctx: Context) -> None:
