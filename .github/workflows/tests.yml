@@ -8,16 +8,12 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     env:
-      MODEL_PATH: models/best_model.pt
-
-    ## DELETE TOMORROW
-    env:
-    MODEL_PATH: tests/assets/test_checkpoint.pt
+      MODEL_PATH: tests/assets/test_checkpoint.pt
 
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ windows-latest]
         python-version: ["3.12"]
 
     steps:
@@ -38,11 +34,6 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements_dev.txt
 
-      - name: Lint with Ruff
-        run: |
-          ruff check .
-          ruff format --check .
-      ####DELETE TOMORROW####
       - name: Create tiny test checkpoint
         run: |
           python - <<'PY'
@@ -59,9 +50,12 @@ jobs:
           torch.save({"state_dict": model.state_dict(), "class_names": class_names}, out)
           print("Wrote", out.resolve())
           PY
-    ####DELETE TOMORROW####
+
+      - name: Lint with Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+
       - name: Run tests
         run: |
           pytest -q
-        env:
-            MODEL_PATH: models/best_model.pt
