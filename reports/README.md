@@ -168,7 +168,18 @@ We used pre-trained ResNet18 for the computer-vision part of the project and the
 >
 > Answer:
 
---- question 4 fill here ---
+We managed dependencies using standard Python pip requirments files. To run the core runtime dependencies for training, evaluation, and the FastAPI backend were placed in requirements.txt, while data/versioning dependencies were placed into requirements_dvc.txt (for DVC and the chosen remote storage). This split keeps the base environment lightweight while still supporting reproducible data and model retrieval.
+To recreate the exact environment, a new team member clones the repository, creates an isolated virtual environment, installs dependencies from both requirements files, and then pulls the versioned data/models with DVC. In addition, since we log experiments to Weights & Biases, the member must be invited to our W&B entity/project and authenticate locally before running training.
+
+An example would be:
+
+git clone <repo-url>
+pip install -r requirements.txt
+pip install -r requirements_dvc.txt
+dvc pull
+wandb login
+
+
 
 ### Question 5
 
@@ -183,8 +194,9 @@ We used pre-trained ResNet18 for the computer-vision part of the project and the
 > *experiments.*
 >
 > Answer:
+> We started out using the Cookiecutter tempate given by: https://github.com/SkafteNicki/mlops_template, and mostly adhered to that structure. The src/ directory was filled with the core runtime code, including data preprocessing, dataset handling, model definition, training, evaluation, and a FastAPI-based inference API. This is where most of the project-specific logic lives. We made small test scripts in test folder. We added small, focused test scripts in the tests/ folder to validate key components such as data loading, model behavior, and the API. Configuration files are stored in the configs/ directory and managed with Hydra, as intended by the template.
 
---- question 5 fill here ---
+In addition to the original structure, we introduced dedicated dockerfiles/ and frontend/ folders to support containerized deployment and a simple Streamlit-based frontend. Finally, the checkpoints/ directory is tracked with DVC and used to store the best-performing trained model.
 
 ### Question 6
 
@@ -199,7 +211,11 @@ We used pre-trained ResNet18 for the computer-vision part of the project and the
 >
 > Answer:
 
---- question 6 fill here ---
+We implemented several rules and tools to ensure code quality and readability throughout the project. We used Ruff as our primary tool for both linting and formatting. Ruff ensures a consistent coding style and detects if there are any unused imports, undefined variables, and other issues which help catching bugs early on in the development and reduces redundancy.
+
+Additionally, we made use of Python type hints in function signatures and class definitions to make it easier to understand the inputs required, and the expected outputs. Type annotations are used in the core parts of the pipeline (data loading, model interfaces, and training loops), making the code easier to reason about and less error-prone, but it is not necessairly everywhere. The same applies for inline comments that we used to describe parts of the code.
+
+These kind of practices and tools are crucial in bigger projects where multiple developers work together. Consistent formatting, linting, and tracking unsued parts of the code, ensures structure and readability of code. It also makes it easier for co-developers to read and understand changes. In general, these practices lowers the barrier for new contributors, and easies the integration of new code.
 
 ## Version control
 
@@ -218,7 +234,8 @@ We used pre-trained ResNet18 for the computer-vision part of the project and the
 >
 > Answer:
 
---- question 7 fill here ---
+We implemented three test modules (test_data.py, test_model.py, and test_api.py) which were mainly used in the begginning og the project. For FastAPI, the API tests validate the /health endpoint to ensure the service is running correctly, and the /predict endpoint to confirm it accepts image uploads and returns a valid prediction response with class labels and probabilities.In addition, we used Weights & Biases (W&B) to log training and evaluation metrics, which helps identify regressions and monitor the impact of code and data changes over time.
+
 
 ### Question 8
 
@@ -233,7 +250,11 @@ We used pre-trained ResNet18 for the computer-vision part of the project and the
 >
 > Answer:
 
---- question 8 fill here ---
+Our total code coverage is 28%. Coverage can be used as an indicator that our core modules (data.py, model.py, train.py etc) are exercised automatically, and that changes that we might do will not silently break the functionality or core modules.
+
+We would never trust a code to be completely error-free even though the coverage is 100%. A coverage of 100% tells us that all our lines were executed, but not necessarily that they are tested with the right edge cases or guarentee that the logic in our code was validated in a meaningfull way.
+
+Doing an API test and calling the /predict endpoint with a valid response, might still overlook problems with mismatching of class labels, or preporcessing which is inconsistent etc. Moreover, training code might execute error-free while still hiding problems with correct metrics or reproducebility. Thus, reliability also depends on well-designed tests, continous monitoring and loggin with wandb for instance, and evaluation of real data.
 
 ### Question 9
 
@@ -264,7 +285,9 @@ Prs was not used in this project, but could've been used to allow other group me
 >
 > Answer:
 
---- question 10 fill here ---
+We used DVC to manage data and model artifacts in the project, e.g. DVC was used to track the raw data ona Google Drive folder, instead of committing large datasets and trained models directly to Git. This helped keep the repository clean and lightweight while still allowing us to version control important data outputs such as processed datasets and the best model checkpoint.
+
+Using DVC made our collaboration efforts easier, since everyone on the team could pull the same data and model versions with dvc pull, reducing confusion about which data was used for training and evaluation. It also helped with reproducibility, as each Git commit is linked to a specific data state. It initially added some extra setup and commands, but overall DVC improved the structure and reliability of our ML workflow.
 
 ### Question 11
 
@@ -300,7 +323,14 @@ Prs was not used in this project, but could've been used to allow other group me
 >
 > Answer:
 
---- question 12 fill here ---
+We configured experiments using Hydra config files stored in the configs/ folder (e.g., dataset paths, batch size, learning rate, epochs, and model settings). This made it easy to reproduce runs and override parameters from the command line without changing code. For example, a default training run is started with:
+
+python -m src.alcohol_classifier.train
+
+and a modified experiment can be launched by overriding config values:
+
+python -m src.alcohol_classifier.train model.lr=1e-3 model.epochs=20 dataset.batch_size=128
+
 
 ### Question 13
 
@@ -315,7 +345,11 @@ Prs was not used in this project, but could've been used to allow other group me
 >
 > Answer:
 
---- question 13 fill here ---
+We ensured reproducibility by making use of config management, data versioning, and experiment logging. 
+
+Our experiment configurations are defined through Hydra config files, so hyperparameters, dataset paths, and model settings are explicitly specified and not hard-coded. For datapaths, we made sure to always define paths from the root folder. When an experiment is run, Hydra automatically saves the fully resolved configuration to the output directory, ensuring that the exact setup of each run is preserved.
+
+For version control we used DVC for data and model checkpoints, which allows us to tie experiment with a specific data and model state. In addition, training and evaluation metrics are logged using Weights & Biases (W&B), providing a persistent record of results and metadata. 
 
 ### Question 14
 
