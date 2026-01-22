@@ -28,50 +28,27 @@ The pipeline of tools and helpers from the pytorch ecosystem will consist of som
 
 The directory structure of the project looks like this:
 ```txt
-├── .github/                  # Github actions and dependabot
-│   ├── dependabot.yaml
-│   └── workflows/
-│        └── data-changes.yml
-│        └── Docker-build.yml
-│        └── model-registry-changes.yml
-│        └── tests.yaml
-├── configs/                  # Configuration files
-├── data/                     # Data directory
-│   ├── processed
-│   └── raw
-├── dockerfiles/              # Dockerfiles
-│   ├── api.Dockerfile
-│   └── train.Dockerfile
-├── docs/                     # Documentation
-│   ├── mkdocs.yml
-│   └── source/
-│       └── index.md
-├── models/                   # Trained models
-├── notebooks/                # Jupyter notebooks
-├── reports/                  # Reports
-│   └── figures/
-├── src/                      # Source code
-│   ├── project_name/
-│   │   ├── __init__.py
-│   │   ├── api.py
-│   │   ├── data.py
-│   │   ├── evaluate.py
-│   │   ├── models.py
-│   │   ├── train.py
-│   │   └── visualize.py
-└── tests/                    # Tests
-│   ├── __init__.py
-│   ├── test_api.py
-│   ├── test_data.py
-│   └── test_model.py
-├── .gitignore
-├── .pre-commit-config.yaml
-├── LICENSE
-├── pyproject.toml            # Python project file
-├── README.md                 # Project README
-├── requirements.txt          # Project requirements
-├── requirements_dev.txt      # Development requirements
-└── tasks.py                  # Project tasks
+├── .github/                   # CI/CD Workflows (GitHub Actions)
+├── api/                       # Deployment & UI
+│   ├── api.py                 # FastAPI backend (Inference)
+│   ├── frontend.py            # Streamlit frontend (User Interface)
+│   └── export_onnx.py         # Model conversion script
+├── configs/                   # Hydra configuration files
+├── data/                      # Data storage (Tracked by DVC)
+│   ├── raw/                   # Raw images (Beer, Wine, Whiskey)
+│   └── processed/             # Preprocessed data tensors
+├── dockerfiles/               # Containerization
+│   ├── api.Dockerfile         # Backend container
+│   └── frontend.Dockerfile    # UI container
+├── models/                    # Model Registry
+│   ├── model.onnx             # Production model (ONNX format)
+│   └── best_model.pt          # PyTorch checkpoint
+├── src/                       # Project Source Code
+│   └── alcohol_classifier/    # Core logic (train, evaluate, data)
+├── tests/                     # Unit & Integration tests
+├── requirements.txt           # Main dependencies
+├── tasks.py                   # Automation (Invoke tasks)
+└── pyproject.toml             # Project metadata & build system
 ```
 
 
