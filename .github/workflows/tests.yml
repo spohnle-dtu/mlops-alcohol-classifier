@@ -34,23 +34,6 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements_dev.txt
 
-      - name: Create tiny test checkpoint
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import torch
-          from src.alcohol_classifier.model import BeverageModel
-
-          out = Path("tests/assets/test_checkpoint.pt")
-          out.parent.mkdir(parents=True, exist_ok=True)
-
-          class_names = ["beer", "whiskey", "wine"]
-          model = BeverageModel(num_classes=len(class_names), pretrained=False)
-
-          torch.save({"state_dict": model.state_dict(), "class_names": class_names}, out)
-          print("Wrote", out.resolve())
-          PY
-
       - name: Lint with Ruff
         run: |
           ruff check .
