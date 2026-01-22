@@ -1,3 +1,5 @@
+# Exam template for 02476 Machine Learning Operations
+
 This is the report template for the exam. Please only remove the text formatted as with three dashes in front and behind
 like:
 
@@ -132,7 +134,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
-s204151, sXXXXXX, sXXXXXX, sXXXXXX, sXXXXXX
+s204151, s242875, s242708, s242845, s174035
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
