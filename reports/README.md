@@ -368,7 +368,17 @@ For version control we used DVC for data and model checkpoints, which allows us 
 >
 > Answer:
 
-![wandb_1.png](figures/wand_1.png)
+![wandb_1](figures/wand_1.png)
+![wandb_3](figures/wand_2.png)
+![wandb_2](figures/wand_3.png)
+
+The screenshots above show experiments that were tracked using Weights & Biases (W&B) while training and validating our alcohol classification model.
+In the first image, we track training loss and training accuracy across epochs. The training loss drops quickly and the accuracy increases to almost 100%, which shows that the model is learning the training data effectively and that the optimization setup works as intended.
+
+The second image shows validation loss and validation accuracy. These metrics are important because they tell us how well the model performs on data it has not seen during training. While the validation accuracy stays fairly stable around 92–93%, the validation loss fluctuates slightly. Comparing training and validation metrics helps us identify overfitting and decide whether changes such as regularization or fewer epochs are needed.
+In the third image, we log system-level metrics, such as GPU clock speed during training. These metrics are useful for understanding hardware performance, comparing runs on different machines, and explaining differences in training time. They also help with debugging performance issues when running experiments on GPUs.
+
+Overall, W&B allows us to keep track of metrics, hyperparameters, and experiment history in one place. This makes it easier to compare runs, reproduce results, and understand how different configuration choices affect both model performance and training efficiency.
 
 ### Question 15
 
@@ -488,8 +498,9 @@ For version control we used DVC for data and model checkpoints, which allows us 
 > *to the API to make it more ...*
 >
 > Answer:
-
---- question 23 fill here ---
+> 
+We built an API for our trained model using FastAPI. The idea was to make the model accessible as a small web service that can run predictions. The PyTorch model is loaded once when the API starts from the saved checkpoint (best.pt), so it doesn’t need to be reloaded for every request, which keeps things faster.
+The API has two main endpoints. The /health endpoint is a simple check to see if the service is up and whether the model loaded correctly. This is mainly useful when deploying the service, for example on Cloud Run, to make sure everything is running as expected. The /predict endpoint is where the actual inference happens. It takes an uploaded image, applies the same preprocessing as during training (resizing and normalization), and returns the predicted class together with the model’s confidence for each class.
 
 ### Question 24
 
@@ -505,7 +516,7 @@ For version control we used DVC for data and model checkpoints, which allows us 
 >
 > Answer:
 
---- question 24 fill here ---
+Yes, we deployed our API both locally and in the cloud. We started by running the FastAPI service locally to check that everything worked as intended, such as loading the model correctly and returning predictions. After that, we packaged the API together with the trained model into a Docker container, which we then tried to deploy to the Google Cloud platform.
 
 ### Question 25
 
