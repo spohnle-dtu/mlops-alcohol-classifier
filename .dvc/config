@@ -1,6 +1,4 @@
 [core]
-    remote = gcsremote
+    remote = storage
 ['remote "storage"']
     url = gdrive://1hWAEEUuKoU2lsIbTGB1xiKQJVbC_868X
-['remote "gcsremote"']
-    url = gs://acohol_classifier_data/dvcstore
