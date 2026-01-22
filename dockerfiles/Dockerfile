@@ -19,7 +19,7 @@ COPY pyproject.toml /app/pyproject.toml
 COPY checkpoints /app/checkpoints
 
 # Fail fast at build-time if the checkpoint isn't in the build context
-#RUN ls -lah /app/checkpoints && test -f /app/checkpoints/best.pt
+RUN ls -lah /app/checkpoints && test -f /app/checkpoints/best.pt
 
 ENV PYTHONPATH=/app/src
 ENV HYDRA_FULL_ERROR=1
