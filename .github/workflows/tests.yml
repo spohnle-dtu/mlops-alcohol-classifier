@@ -5,14 +5,32 @@ on:
   pull_request:
 
 jobs:
-  pytest:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ${{ matrix.os }}
+    env:
+      MODEL_PATH: models/best_model.pt
+
+    ## DELETE TOMORROW
+    env:
+    MODEL_PATH: tests/assets/test_checkpoint.pt
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.12"]
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements_dev.txt
 
       - name: Install dependencies
         run: |
@@ -20,6 +38,30 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements_dev.txt
 
+      - name: Lint with Ruff
+        run: |
+          ruff check .
+          ruff format --check .
+      ####DELETE TOMORROW####
+      - name: Create tiny test checkpoint
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import torch
+          from src.alcohol_classifier.model import BeverageModel
+
+          out = Path("tests/assets/test_checkpoint.pt")
+          out.parent.mkdir(parents=True, exist_ok=True)
+
+          class_names = ["beer", "whiskey", "wine"]
+          model = BeverageModel(num_classes=len(class_names), pretrained=False)
+
+          torch.save({"state_dict": model.state_dict(), "class_names": class_names}, out)
+          print("Wrote", out.resolve())
+          PY
+    ####DELETE TOMORROW####
       - name: Run tests
         run: |
           pytest -q
+        env:
+            MODEL_PATH: models/best_model.pt
