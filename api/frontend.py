@@ -19,13 +19,13 @@ uploaded = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png", "webp
 
 if uploaded is not None:
     image_bytes = uploaded.getvalue()
-    st.image(image_bytes, caption="Uploaded image", use_container_width=True)
+    st.image(image_bytes, caption="Uploaded image", width="stretch")
 
     if st.button("Predict", type="primary"):
         with st.spinner("Running inference..."):
             try:
                 # IMPORTANT: your FastAPI expects the field name "image"
-                files = {"image": (uploaded.name, image_bytes, uploaded.type)}
+                files = {"file": (uploaded.name, image_bytes, uploaded.type)}
                 r = requests.post(f"{BACKEND}/predict", files=files, timeout=30)
             except requests.RequestException as e:
                 st.error(f"Request failed: {e}")
@@ -48,4 +48,3 @@ if uploaded is not None:
         else:
             st.warning("No probabilities returned.")
             st.json(result)
-
