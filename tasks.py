@@ -99,6 +99,23 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
         f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}", echo=True, pty=not WINDOWS
     )
 
+# API commands
+@task
+def api(ctx: Context, reload: bool = True) -> None:
+    """Start the FastAPI backend server."""
+    reload_str = "--reload" if reload else ""
+    # We use api.api:app because your file is api/api.py
+    # and the FastAPI object is named 'app'
+    print("🚀 Starting FastAPI backend on http://127.0.0.1:8000")
+    ctx.run(f"python -m uvicorn api.api:app {reload_str} --port 8000", echo=True, pty=not WINDOWS)
+
+@task
+def frontend(ctx: Context, backend_url: str = "http://127.0.0.1:8000") -> None:
+    """Start the Streamlit frontend."""
+    # This sets the BACKEND env var for the duration of this command
+    os.environ["BACKEND"] = backend_url
+    print(f"🖥️  Starting Streamlit frontend pointing to {backend_url}")
+    ctx.run(f"python -m streamlit run api/frontend.py", echo=True, pty=not WINDOWS)
 
 # Documentation commands
 @task(dev_requirements)

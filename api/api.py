@@ -36,10 +36,18 @@ async def predict(file: UploadFile = File(...)):
     predicted_class_idx = int(np.argmax(logits))
     confidence = float(np.max(np.exp(logits) / np.sum(np.exp(logits)))) # Softmax
 
+    predicted_class = ""
+    if predicted_class_idx == 0:
+        predicted_class = "Beer"
+    elif predicted_class_idx == 1:
+        predicted_class = "Whiskey"
+    elif predicted_class_idx == 2:
+        predicted_class = "Wine"
+
     return {
-        "prediction": predicted_class_idx,
-        "confidence": round(confidence, 4),
-        "engine": "ONNX Runtime"
+    "predicted_class": predicted_class, # Matches frontend result.get("predicted_class")
+    "confidence": round(confidence, 4),
+    "probabilities": {str(i): float(logits[0][i]) for i in range(len(logits[0]))} # Optional: helps the bar chart
     }
 
 @app.get("/")
