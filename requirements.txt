@@ -16,3 +16,4 @@ pillow>=10.0
 matplotlib>=3.7
 
 loguru>=0.7.3
+python-multipart>=0.0.9
