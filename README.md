@@ -31,7 +31,10 @@ The directory structure of the project looks like this:
 ├── .github/                  # Github actions and dependabot
 │   ├── dependabot.yaml
 │   └── workflows/
-│       └── tests.yaml
+│        └── data-changes.yml
+│        └── Docker-build.yml
+│        └── model-registry-changes.yml
+│        └── tests.yaml
 ├── configs/                  # Configuration files
 ├── data/                     # Data directory
 │   ├── processed
