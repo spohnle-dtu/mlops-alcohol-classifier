@@ -305,7 +305,7 @@ Using DVC made our collaboration efforts easier, since everyone on the team coul
 > Answer:
 
 
-<span style="color:red">WRITE SOMETHING HERE BLA BLA</span>
+*WRITE SOMETHING HERE BLA BLA *************
 
 
 ## Running code and tracking experiments
@@ -368,7 +368,7 @@ For version control we used DVC for data and model checkpoints, which allows us 
 >
 > Answer:
 
---- question 14 fill here ---
+![wandb_1.png](figures/wand_1.png)
 
 ### Question 15
 
