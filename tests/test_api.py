@@ -4,8 +4,8 @@ import sys
 
 import numpy as np
 import pytest
-from PIL import Image
 from fastapi.testclient import TestClient
+from PIL import Image
 
 
 def _import_api_with_dummy(monkeypatch, logits: np.ndarray):

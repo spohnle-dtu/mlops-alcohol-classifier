@@ -1,4 +1,5 @@
 import torch
+
 from src.alcohol_classifier.model import BeverageModel
 
 

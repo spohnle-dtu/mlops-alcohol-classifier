@@ -3,8 +3,8 @@ import io
 
 import numpy as np
 import onnxruntime as ort
-from PIL import Image
 from fastapi import FastAPI, File, UploadFile
+from PIL import Image
 
 app = FastAPI(title="Alcohol Classifier API (ONNX)")
 
