@@ -41,7 +41,9 @@ jobs:
 
       - name: Pull data from DVC
         run: |
-          # We use --force to ensure it overwrites any existing stubs
+          # Force local config to expect a service account on the runner
+          dvc remote modify storage --local gdrive_use_service_account true
+          dvc remote modify storage --local gdrive_service_account_json_file_path /tmp/credentials.json
           dvc pull --force
         env:
           GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
