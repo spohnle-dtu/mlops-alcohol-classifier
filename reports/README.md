@@ -604,6 +604,7 @@ We actually worked on two Google Cloud Platforms simultaneously which was propab
 > *implemented using ...*
 >
 > Answer:
+
 We did implement a frotend for our API. A very simple frontend with the opportunity of uploading an image of your prefered beverages withing the three classes beer/wine/whiskey, and it will output the the predicted class based on our model in a string-format, and the probability of each class.
 
 
