@@ -43,8 +43,9 @@ def preprocess_data(ctx: Context) -> None:
     ctx.run(
         f"python src/{PROJECT_NAME}/data.py dataset.path_raw=data/raw dataset.path_processed=data/processed",
         echo=True,
-        pty=not WINDOWS
+        pty=not WINDOWS,
     )
+
 
 @task
 def train(c, lr=None, epochs=None, batch=None, freeze=False, not_pretrained=False):
@@ -99,6 +100,7 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
         f"docker build -t api:latest . -f dockerfiles/api.dockerfile --progress={progress}", echo=True, pty=not WINDOWS
     )
 
+
 # API commands
 @task
 def api(ctx: Context, reload: bool = True) -> None:
@@ -109,6 +111,7 @@ def api(ctx: Context, reload: bool = True) -> None:
     print("🚀 Starting FastAPI backend on http://127.0.0.1:8000")
     ctx.run(f"python -m uvicorn api.api:app {reload_str} --port 8000", echo=True, pty=not WINDOWS)
 
+
 @task
 def frontend(ctx: Context, backend_url: str = "http://127.0.0.1:8000") -> None:
     """Start the Streamlit frontend."""
@@ -116,6 +119,7 @@ def frontend(ctx: Context, backend_url: str = "http://127.0.0.1:8000") -> None:
     os.environ["BACKEND"] = backend_url
     print(f"🖥️  Starting Streamlit frontend pointing to {backend_url}")
     ctx.run("python -m streamlit run api/frontend.py", echo=True, pty=not WINDOWS)
+
 
 # Documentation commands
 @task(dev_requirements)

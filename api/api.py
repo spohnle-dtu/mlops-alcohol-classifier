@@ -14,6 +14,7 @@ ort_session = ort.InferenceSession(MODEL_PATH)
 input_name = ort_session.get_inputs()[0].name
 output_name = ort_session.get_outputs()[0].name
 
+
 def preprocess_image(image_bytes: bytes):
     """Prepares raw image bytes for the ResNet18 ONNX model."""
     img = Image.open(io.BytesIO(image_bytes)).convert("RGB")
@@ -26,6 +27,7 @@ def preprocess_image(image_bytes: bytes):
     img_data = np.expand_dims(img_data, axis=0)
     return img_data
 
+
 @app.post("/predict")
 async def predict(file: UploadFile = File(...)):
     image_bytes = await file.read()
@@ -35,7 +37,7 @@ async def predict(file: UploadFile = File(...)):
 
     logits = outputs[0]
     predicted_class_idx = int(np.argmax(logits))
-    confidence = float(np.max(np.exp(logits) / np.sum(np.exp(logits)))) # Softmax
+    confidence = float(np.max(np.exp(logits) / np.sum(np.exp(logits))))  # Softmax
 
     predicted_class = ""
     if predicted_class_idx == 0:
@@ -46,10 +48,11 @@ async def predict(file: UploadFile = File(...)):
         predicted_class = "Wine"
 
     return {
-    "predicted_class": predicted_class, # Matches frontend result.get("predicted_class")
-    "confidence": round(confidence, 4),
-    "probabilities": {str(i): float(logits[0][i]) for i in range(len(logits[0]))} # Optional: helps the bar chart
+        "predicted_class": predicted_class,  # Matches frontend result.get("predicted_class")
+        "confidence": round(confidence, 4),
+        "probabilities": {str(i): float(logits[0][i]) for i in range(len(logits[0]))},  # Optional: helps the bar chart
     }
+
 
 @app.get("/")
 def root():
