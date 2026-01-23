@@ -358,11 +358,11 @@ python -m src.alcohol_classifier.train model.lr=1e-3 model.epochs=20 dataset.bat
 >
 > Answer:
 
-We ensured reproducibility by making use of config management, data versioning, and experiment logging. 
+We ensured reproducibility by making use of config management, data versioning, and experiment logging.
 
 Our experiment configurations are defined through Hydra config files, so hyperparameters, dataset paths, and model settings are explicitly specified and not hard-coded. For datapaths, we made sure to always define paths from the root folder. When an experiment is run, Hydra automatically saves the fully resolved configuration to the output directory, ensuring that the exact setup of each run is preserved.
 
-For version control we used DVC for data and model checkpoints, which allows us to tie experiment with a specific data and model state. In addition, training and evaluation metrics are logged using Weights & Biases (W&B), providing a persistent record of results and metadata. 
+For version control we used DVC for data and model checkpoints, which allows us to tie experiment with a specific data and model state. In addition, training and evaluation metrics are logged using Weights & Biases (W&B), providing a persistent record of results and metadata.
 
 ### Question 14
 
@@ -406,7 +406,13 @@ Overall, W&B allows us to keep track of metrics, hyperparameters, and experiment
 >
 > Answer:
 
-********* WIRTE SOMETHING HERE ***********
+We used Docker to containerize our application, ensuring a consistent environment for both the backend and frontend. We developed two separate Dockerfiles: one for the FastAPI model server and another for the Streamlit frontend.
+
+To optimize performance and minimize image size, we moved away from a heavy training environment to a slimmed-down inference setup. By using a specialized requirements_docker.txt that utilizes onnxruntime instead of the full PyTorch library, we kept our API image around 680MB. Our CI/CD pipeline is configured to automatically build these images, where the GitHub runner uses DVC to pull the necessary .onnx model files into the container at build time.
+
+To run the API container, we use: docker run -p 8000:8000 alcohol-api:latest
+
+To run the frontend: docker run -p 8501:8501 alcohol-frontend:latest
 
 ### Question 16
 
@@ -468,7 +474,7 @@ Finally, IAM (Identity and Access Management) was used to control access, for ex
 We used Google Compute Engine to run virtual machines where we did development and testing of our project in the cloud. The VMs were used to run Docker containers for training, evaluation, and debugging, which made it easier to reproduce issues that did not appear on local machines. This helped us overcome problems with individual machines, especially RAM-related issues.
 Using GCE was useful for testing access to Google Cloud Storage and checking that our containers worked correctly in a cloud environment. This allowed us to verify that the full pipeline worked outside local machines before deployment.
 
-We used general-purpose CPU-based virtual machines, which were sufficient given the moderate size of our dataset and model. The virtual machines were mainly used to pull data from Google Cloud Storage, run training and evaluation scripts, and test Docker images in a cloud environment. 
+We used general-purpose CPU-based virtual machines, which were sufficient given the moderate size of our dataset and model. The virtual machines were mainly used to pull data from Google Cloud Storage, run training and evaluation scripts, and test Docker images in a cloud environment.
 
 
 ### Question 19
@@ -512,7 +518,7 @@ We used general-purpose CPU-based virtual machines, which were sufficient given 
 > Answer:
 
 We did not fully rely on the cloud for large-scale model training. Most of the model development and training was performed locally, as the dataset and model size were relatively small and did not require significant computational resources. However, we did experiment with training and running parts of the pipeline on Google Compute Engine virtual machines to understand how the workflow would behave in a cloud environment.
-On the virtual machine, we tested pulling data from Google Cloud Storage, running training and evaluation scripts, and verifying that the setup worked end-to-end outside our local machines. This helped us debug cloud-specific issues such as permissions, paths, and environment configuration. 
+On the virtual machine, we tested pulling data from Google Cloud Storage, running training and evaluation scripts, and verifying that the setup worked end-to-end outside our local machines. This helped us debug cloud-specific issues such as permissions, paths, and environment configuration.
 
 
 ## Deployment
@@ -529,7 +535,7 @@ On the virtual machine, we tested pulling data from Google Cloud Storage, runnin
 > *to the API to make it more ...*
 >
 > Answer:
-> 
+>
 We built an API for our trained model using FastAPI. The idea was to make the model accessible as a small web service that can run predictions. The PyTorch model is loaded once when the API starts from the saved checkpoint (best.pt), so it doesn’t need to be reloaded for every request, which keeps things faster.
 The API has two main endpoints. The /health endpoint is a simple check to see if the service is up and whether the model loaded correctly. This is mainly useful when deploying the service, for example on Cloud Run, to make sure everything is running as expected. The /predict endpoint is where the actual inference happens. It takes an uploaded image, applies the same preprocessing as during training (resizing and normalization), and returns the predicted class together with the model’s confidence for each class.
 
@@ -547,9 +553,11 @@ The API has two main endpoints. The /health endpoint is a simple check to see if
 >
 > Answer:
 
-Yes, we deployed our API both locally and in the cloud. We started by running the FastAPI service locally to check that everything worked as intended, such as loading the model correctly and returning predictions. After that, we packaged the API together with the trained model into a Docker container, which we then tried to deploy to the Google Cloud platform.
+Yes, we successfully deployed our API both locally and in the cloud. After verifying the FastAPI service locally, we containerized the application and deployed it to Google Cloud Run. This setup allows the API to scale automatically and provides a stable HTTPS endpoint.
 
-We also made a frontend using Streamlit, which allows users to use our API and get a prediction based on an Image that the user uploads. This allows a very user-friendly way of using our model and API without any technical know-how.
+Our deployment uses the optimized ONNX model to ensure fast inference times and lower memory usage in the cloud environment. To bridge the gap for non-technical users, we also deployed a Streamlit frontend. The frontend invokes the service by sending an HTTP POST request containing the image data to the API's endpoint.
+
+A user can also invoke the deployed API directly via the command line using curl: curl -X 'POST' 'https://alcohol-api-xxxx-uc.a.run.app/predict' -F 'file=@test_image.jpg'
 
 ### Question 25
 
@@ -683,4 +691,4 @@ Student s242875: Supported the development process by reviewing code structure, 
 
 
 
-AI has been used as for several parts of the project. It has been used as a step after prototyping, to debug code pieces of code, and to optimize the it as well. It has also been used partly to write easily understandable inline comments, and to standardize them. It has also been used to reformulate parts of the the report writing in order to make it sound more professional, and to reduce redundacy and increase readability. 
+AI has been used as for several parts of the project. It has been used as a step after prototyping, to debug code pieces of code, and to optimize the it as well. It has also been used partly to write easily understandable inline comments, and to standardize them. It has also been used to reformulate parts of the the report writing in order to make it sound more professional, and to reduce redundacy and increase readability.
