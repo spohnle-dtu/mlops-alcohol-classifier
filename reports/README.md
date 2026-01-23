@@ -234,7 +234,7 @@ These kind of practices and tools are crucial in bigger projects where multiple 
 >
 > Answer:
 
-We implemented three test modules (test_data.py, test_model.py, and test_api.py) which were mainly used in the begginning og the project. For FastAPI, the API tests validate the /health endpoint to ensure the service is running correctly, and the /predict endpoint to confirm it accepts image uploads and returns a valid prediction response with class labels and probabilities.In addition, we used Weights & Biases (W&B) to log training and evaluation metrics, which helps identify regressions and monitor the impact of code and data changes over time.
+We implemented three test modules (test_data.py, test_model.py, and test_api.py) which were mainly used in the begginning og the project. For FastAPI, the API tests validate the /health endpoint to ensure the service is running correctly, and the /predict endpoint to confirm it accepts image uploads and returns a valid prediction response with class labels and probabilities.In addition, we used Weights & Biases (W&B) to log training and evaluation metrics, which helps identify regressions and monitor the impact of code and data changes over time. This makes 14 Unit tests in total
 
 
 ### Question 8
@@ -250,7 +250,7 @@ We implemented three test modules (test_data.py, test_model.py, and test_api.py)
 >
 > Answer:
 
-Our total code coverage is 28%. Coverage can be used as an indicator that our core modules (data.py, model.py, train.py etc) are exercised automatically, and that changes that we might do will not silently break the functionality or core modules.
+Our total code coverage is 65%. Coverage can be used as an indicator that our core modules (data.py, model.py, train.py etc) are exercised automatically, and that changes that we might do will not silently break the functionality or core modules.
 
 We would never trust a code to be completely error-free even though the coverage is 100%. A coverage of 100% tells us that all our lines were executed, but not necessarily that they are tested with the right edge cases or guarentee that the logic in our code was validated in a meaningfull way.
 
