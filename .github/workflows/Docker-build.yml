@@ -8,6 +8,7 @@ on:
       - "src/**"
       - "requirements_docker.txt"
       - "pyproject.toml"
+      - ".github/workflows/**" # Added so workflow changes trigger a build
   push:
     branches: ["main"]
     paths:
@@ -15,6 +16,7 @@ on:
       - "src/**"
       - "requirements_docker.txt"
       - "pyproject.toml"
+      - ".github/workflows/**" # Added so workflow changes trigger a build
 
 jobs:
   build:
@@ -31,13 +33,16 @@ jobs:
             tag: alcohol-api:ci
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install DVC
         uses: iterative/setup-dvc@v1
 
       - name: Pull data from DVC
-        run: dvc pull
+        run: |
+          # We use --force to ensure it overwrites any existing stubs
+          dvc pull --force
         env:
           GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
 
