@@ -2,11 +2,10 @@
 import io
 import sys
 import importlib
-
 import pytest
+import numpy as np
 from fastapi.testclient import TestClient
 from PIL import Image
-import numpy as np
 
 
 def _import_api_with_dummy(monkeypatch, logits: np.ndarray):
@@ -39,8 +38,8 @@ def _import_api_with_dummy(monkeypatch, logits: np.ndarray):
 
         return DummySession
 
-    Dummy = make_dummy_class(logits)
-    monkeypatch.setattr(ort, "InferenceSession", Dummy)
+    dummy = make_dummy_class(logits)
+    monkeypatch.setattr(ort, "InferenceSession", dummy)
 
     # Ensure a fresh import of the api module
     if "api.api" in sys.modules:

@@ -115,7 +115,7 @@ def frontend(ctx: Context, backend_url: str = "http://127.0.0.1:8000") -> None:
     # This sets the BACKEND env var for the duration of this command
     os.environ["BACKEND"] = backend_url
     print(f"🖥️  Starting Streamlit frontend pointing to {backend_url}")
-    ctx.run(f"python -m streamlit run api/frontend.py", echo=True, pty=not WINDOWS)
+    ctx.run("python -m streamlit run api/frontend.py", echo=True, pty=not WINDOWS)
 
 # Documentation commands
 @task(dev_requirements)
