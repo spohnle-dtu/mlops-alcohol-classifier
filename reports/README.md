@@ -549,7 +549,7 @@ The API has two main endpoints. The /health endpoint is a simple check to see if
 
 Yes, we deployed our API both locally and in the cloud. We started by running the FastAPI service locally to check that everything worked as intended, such as loading the model correctly and returning predictions. After that, we packaged the API together with the trained model into a Docker container, which we then tried to deploy to the Google Cloud platform.
 
-******** WRITE A BIT MORE HERE *******
+We also made a frontend using Streamlit, which allows users to use our API and get a prediction based on an Image that the user uploads. This allows a very user-friendly way of using our model and API without any technical know-how.
 
 ### Question 25
 
