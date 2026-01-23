@@ -269,8 +269,9 @@ Doing an API test and calling the /predict endpoint with a valid response, might
 >
 > Answer:
 
-We made use of Branches in this project, each member had their own branch to work on with new functionality. To commit new code, the main branch was first pulled to get the latest updates and then merged into the member's branch to resolve any conflicts. Then a clean merge was done into the main branch.
-Prs was not used in this project, but could've been used to allow other group members to review the code before commiting it, ensuring higher code quality and fewer bugs by suggesting improvements.
+We made use of branches in this project, where each group member had their own branch to work on new functionality without affecting the main codebase. Before committing new code, the latest version of the main branch was first pulled and merged into the member’s branch to stay up to date and resolve any potential conflicts early. Once the changes were tested and working as expected, a clean merge was performed back into the main branch.
+
+We did not use PRs in this project. However, PRs could have been used to allow other group members to review the code before merging, which would make it easier to catch bugs, suggest improvements, and maintain a higher overall code quality.
 
 ### Question 10
 
