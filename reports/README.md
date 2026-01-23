@@ -483,7 +483,7 @@ We used general-purpose CPU-based virtual machines, which were sufficient given 
 >
 > Answer:
 
---- question 21 fill here ---
+![GCP_cloudbuild_v1](figures/GCP_cloudbuild_v1.png)
 
 ### Question 22
 
@@ -498,7 +498,9 @@ We used general-purpose CPU-based virtual machines, which were sufficient given 
 >
 > Answer:
 
---- question 22 fill here ---
+We did not fully rely on the cloud for large-scale model training. Most of the model development and training was performed locally, as the dataset and model size were relatively small and did not require significant computational resources. However, we did experiment with training and running parts of the pipeline on Google Compute Engine virtual machines to understand how the workflow would behave in a cloud environment.
+On the virtual machine, we tested pulling data from Google Cloud Storage, running training and evaluation scripts, and verifying that the setup worked end-to-end outside our local machines. This helped us debug cloud-specific issues such as permissions, paths, and environment configuration. 
+
 
 ## Deployment
 
@@ -547,7 +549,9 @@ Yes, we deployed our API both locally and in the cloud. We started by running th
 >
 > Answer:
 
---- question 25 fill here ---
+We did performed basic unit testing of our API, but we did not do a formal load testing. Unit tests were performed using pytest and focused on making sure that the API could start correctly and respond to requests in an expected way. In particular, we tested the inference endpoint by doing sample requests and veryfying that the response format and status code were correct. This helped us to make sure that model loading, request handling, and inference worked together as intended.
+
+We did not perform systematic load testing, as got to the point of proof of concept, and did not test how it performed under high traffic with load tests.
 
 ### Question 26
 
@@ -562,7 +566,7 @@ Yes, we deployed our API both locally and in the cloud. We started by running th
 >
 > Answer:
 
---- question 26 fill here ---
+We did not set up dedicated monitoring for the deployed API with things like inference performance, response time, or data drift. If the project were extended further, monitoring would be important to make sure the application keeps working well over time. For example, monitoring could be used to keep an eye on request latency, error rates, and the types of predictions the model is making, and to notice if something starts to behave differently than expected. Combined with simple logging and alerts, this would make it easier to spot problems early, understand what is going on, and decide when the model needs to be retrained or the service needs to be scaled. This kind of monitoring would help make the deployed application more stable and reliable in the long run.
 
 ## Overall discussion of project
 
@@ -581,7 +585,7 @@ Yes, we deployed our API both locally and in the cloud. We started by running th
 >
 > Answer:
 
---- question 27 fill here ---
+We actually worked on two Google Cloud Platforms simultaneously which was propably not ideal, but two team members tried it out on their own first, and then we included more team members afterwards, but had some difficulties in setting up a method for fast access. We used app. 21 credits, and the compute engine accounted for about 90% of the expenses. There seems to be a lot of potential in the cloud, especially when collaborating in groups, and for running heavy code. However, it can take some time to overcome the initial phase of setting the pipeline up. For future DL/ML projects it is definitely a platform that several team members consider using again. Moreover, it is an easy ad cheap way to uptaining computing power and storage space etc. all in one place. The only, dowside is being dependant on big tech companies, which will then hold power over your data.
 
 ### Question 28
 
@@ -596,6 +600,7 @@ Yes, we deployed our API both locally and in the cloud. We started by running th
 > *implemented using ...*
 >
 > Answer:
+We did implement a frotend for our API. A very simple frontend with the opportunity of uploading an image of your prefered beverages withing the three classes beer/wine/whiskey, and it will output the the predicted class based on our model in a string-format, and the probability of each class.
 
 --- question 28 fill here ---
 
@@ -628,7 +633,7 @@ Yes, we deployed our API both locally and in the cloud. We started by running th
 >
 > Answer:
 
---- question 30 fill here ---
+
 
 ### Question 31
 
