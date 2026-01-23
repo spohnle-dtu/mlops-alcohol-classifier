@@ -1,4 +1,3 @@
-import time
 from typing import Dict, List
 
 import hydra
@@ -41,17 +40,21 @@ def evaluate_with_transform(
 
 
 def brightness_transform(severity: int):
-    return T.Compose([
-        T.Lambda(lambda x: x + severity * 0.1),
-        T.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
-    ])
+    return T.Compose(
+        [
+            T.Lambda(lambda x: x + severity * 0.1),
+            T.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
+        ]
+    )
 
 
 def noise_transform(severity: int):
-    return T.Compose([
-        T.Lambda(lambda x: x + torch.randn_like(x) * severity * 0.05),
-        T.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
-    ])
+    return T.Compose(
+        [
+            T.Lambda(lambda x: x + torch.randn_like(x) * severity * 0.05),
+            T.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
+        ]
+    )
 
 
 def blur_transform(severity: int):
