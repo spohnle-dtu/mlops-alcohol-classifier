@@ -465,7 +465,7 @@ We used general-purpose CPU-based virtual machines, which were sufficient given 
 >
 > Answer:
 
---- question 19 fill here ---
+![GCP_Bucket](figures/GCP_Bucket.png)
 
 ### Question 20
 
@@ -474,7 +474,7 @@ We used general-purpose CPU-based virtual machines, which were sufficient given 
 >
 > Answer:
 
---- question 20 fill here ---
+![GCP_Docker_v1](figures/GCP_Docker_v1.png)
 
 ### Question 21
 
