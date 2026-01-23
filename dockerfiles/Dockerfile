@@ -16,18 +16,17 @@ COPY configs /app/configs
 COPY pyproject.toml /app/pyproject.toml
 
 # Model artifact
-COPY checkpoints /app/checkpoints
+COPY models /app/models
 
 # Fail fast at build-time if the checkpoint isn't in the build context
-RUN ls -lah /app/checkpoints && test -f /app/checkpoints/best.pt
+RUN ls -lah /app/models && test -f /app/models/model.onnx
 
 ENV PYTHONPATH=/app/src
 ENV HYDRA_FULL_ERROR=1
-ENV MODEL_PATH=/app/checkpoints/best.pt
+ENV MODEL_PATH=/app/models/model.onnx
 
 # Cloud Run expects the container to listen on $PORT
 ENV PORT=8080
 EXPOSE 8080
 
-CMD ["bash", "-lc", "python -m uvicorn alcohol_classifier.api:app --host 0.0.0.0 --port ${PORT:-8080}"]
-
+CMD ["python", "-m", "uvicorn", "api.api:app", "--host", "0.0.0.0", "--port", "8080"]

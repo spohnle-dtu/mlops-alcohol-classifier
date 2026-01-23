@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+onnxruntime
+pillow
+numpy
+python-multipart
+requests
+streamlit
+requests
