@@ -306,7 +306,17 @@ Using DVC made our collaboration efforts easier, since everyone on the team coul
 > Answer:
 
 
-*WRITE SOMETHING HERE BLA BLA *************
+Our continuous integration (CI) setup is consists of various GitHub Actions workflows to ensure code quality and reliability. We have workflows for unit testing, and building Docker images. These worksflows are executes every time a change is committed to the main branch. Python version 3.12 was tested in all workflows and Ubuntu was tested in all workflows besides tests.yml which runs the latest version of Windows.
+
+File `.github/workflows/tests.yml` runs Ruff to check for code style/formatting issues and uses pytest to run all unit tests.
+
+File `.github/workflows/docker-build.yml` builds Docker images. This quality checks our Dockerfiles and checks if they can be built successfully.
+
+File `.github/workflows/data-changes.yml` does data testing (runs `tests/test_data.py`) to ensure that data changes don't break anything.
+
+File `.github/workflows/model-registry-changes.yml` tests the model training/creation and tests linting. It runs `tests/tests/test_model.py` and `tests/test_train_step.py`
+
+An example of a triggered workflow can be seen here: https://github.com/spohnle-dtu/mlops-alcohol-classifier/actions/runs/21292282158
 
 
 ## Running code and tracking experiments
@@ -539,7 +549,7 @@ The API has two main endpoints. The /health endpoint is a simple check to see if
 
 Yes, we deployed our API both locally and in the cloud. We started by running the FastAPI service locally to check that everything worked as intended, such as loading the model correctly and returning predictions. After that, we packaged the API together with the trained model into a Docker container, which we then tried to deploy to the Google Cloud platform.
 
-******** WRITE A BIT MORE HERE *******
+We also made a frontend using Streamlit, which allows users to use our API and get a prediction based on an Image that the user uploads. This allows a very user-friendly way of using our model and API without any technical know-how.
 
 ### Question 25
 
