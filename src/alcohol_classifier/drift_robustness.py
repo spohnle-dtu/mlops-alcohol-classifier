@@ -1,9 +1,8 @@
-import time
 from typing import Dict, List
 
 import hydra
 import torch
-import torchvision.transforms as T
+import torchvision.transforms as transforms
 from loguru import logger
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
@@ -17,7 +16,7 @@ def evaluate_with_transform(
     model: torch.nn.Module,
     loader: DataLoader,
     device: torch.device,
-    transform: T.Compose | None = None,
+    transform: transforms.Compose | None = None,
 ) -> float:
     """Evaluate accuracy with an optional image transform applied."""
     model.eval()
@@ -41,21 +40,21 @@ def evaluate_with_transform(
 
 
 def brightness_transform(severity: int):
-    return T.Compose([
-        T.Lambda(lambda x: x + severity * 0.1),
-        T.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
+    return transforms.Compose([
+        transforms.Lambda(lambda x: x + severity * 0.1),
+        transforms.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
     ])
 
 
 def noise_transform(severity: int):
-    return T.Compose([
-        T.Lambda(lambda x: x + torch.randn_like(x) * severity * 0.05),
-        T.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
+    return transforms.Compose([
+        transforms.Lambda(lambda x: x + torch.randn_like(x) * severity * 0.05),
+        transforms.Lambda(lambda x: torch.clamp(x, 0.0, 1.0)),
     ])
 
 
 def blur_transform(severity: int):
-    return T.GaussianBlur(kernel_size=3, sigma=severity * 0.5)
+    return transforms.GaussianBlur(kernel_size=3, sigma=severity * 0.5)
 
 
 @hydra.main(config_path="../../configs", config_name="run", version_base="1.3")
