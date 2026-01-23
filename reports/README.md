@@ -641,8 +641,20 @@ We did implement a frotend for our API. A very simple frontend with the opportun
 > *Whenever we commit code and push to GitHub, it auto triggers ... and ... . From there the diagram shows ...*
 >
 > Answer:
-Testestestestest
---- question 29 fill here ---
+
+Our system architecture is designed as a modular MLOps pipeline that separates data management, model training, and service deployment. The process follows these key steps:
+
+1. Local Development and Configuration: The starting point is our local environment where we use Hydra for configuration management. This allows us to experiment with different hyperparameters and dataset versions without modifying the core logic. For experiment tracking, we integrated Weights & Biases (W&B), which logs metrics like loss and accuracy in real-time, allowing us to compare different training runs.
+
+2. Data and Model Versioning: To handle large files like our 43MB model data, we use DVC. Instead of pushing large binaries to GitHub, we push them to a Google Drive remote. Git only tracks tiny .dvc pointer files, ensuring our repository stays lightweight while maintaining full data provenance.
+
+3. CI/CD Pipeline: Whenever code is pushed to GitHub, it triggers GitHub Actions. We have two primary workflows:
+
+Tests: Runs Pytest and Linting to ensure code quality.
+
+Docker Build: This workflow automatically pulls the latest model weights from DVC (using a Service Account for authentication) and builds two container images: one for the FastAPI backend and one for the Streamlit frontend.
+
+4. Deployment and Inference: The final stage is the deployment of our Docker containers. For inference, we export our model to the ONNX format, which allows us to use a lightweight onnxruntime environment instead of a full PyTorch installation. These containers are hosted on Google Cloud Run, providing a scalable API that the Streamlit frontend communicates with to serve predictions to the end user.
 
 ### Question 30
 
