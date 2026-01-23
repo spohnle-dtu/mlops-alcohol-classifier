@@ -667,7 +667,10 @@ Remote work: Much of the work was done remotely, which was introducing a further
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
-Student ralor: Contributed to developing core modules train.py, data.py etc. He has contributed to developing FastApi, frontend integration, and GCP integration of the proejct. He has also contributed to report writing. Student s204151 helped ensure high code quality by writing unit tests, using profiling to optimize code, adding logging events and calculating code coverage. Also participated in report writing.  
+Student ralor: contributed to developing core modules train.py, data.py etc. He has contributed to developing FastApi, frontend integration, and GCP integration of the proejct. He has also contributed to report writing.
+Student s204151: helped ensure high code quality by writing unit tests, using profiling to optimize code, adding logging events and calculating code coverage. Also participated in report writing.
+Student s242875: Supported the development process by reviewing code structure, helping align the project with course modules, and assisting with documentation and report refinement. Also helped by testing components locally and verifying configurations.
+
 
 
 AI has been used as for several parts of the project. It has been used as a step after prototyping, to debug code pieces of code, and to optimize the it as well. It has also been used partly to write easily understandable inline comments, and to standardize them. It has also been used to reformulate parts of the the report writing in order to make it sound more professional, and to reduce redundacy and increase readability. 
