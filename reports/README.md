@@ -408,7 +408,10 @@ Overall, W&B allows us to keep track of metrics, hyperparameters, and experiment
 >
 > Answer:
 
---- question 16 fill here ---
+During development we mainly ran into bugs related to data loading, config mismatches, and differences between local runs and Docker/Cloud setups. We debugged these issues step by step using simple logging, print statements, and unit tests. When something broke, we often ran individual modules like data.py, train.py, or evaluate.py on their own and added checks for tensor shapes, data types, and file paths before running the full pipeline. Pytest was used to test core pieces such as a single training step, which helped catch errors early.
+Several problems were also caused by the runtime environment, for example missing files inside Docker images or wrong paths. These were debugged by running containers interactively and inspecting files and environment variables.
+
+We did not perform extensive profiling, as the model and dataset size were relatively small and not limited by computing power. However, we did monitored training time per epoch and GPU/CPU utilization to ensure there were no obvious bottlenecks, but also as a mean of debugging.
 
 ## Working in the cloud
 
@@ -425,7 +428,16 @@ Overall, W&B allows us to keep track of metrics, hyperparameters, and experiment
 >
 > Answer:
 
---- question 17 fill here ---
+In this project we used several Google Cloud Platform (GCP) services. We aimed at using it as an integrated part of our project, but we had quite a few issues with creating fast access for each team member, so it did not become as integrated as we aimed @. However, we did do the following:
+
+
+A Google Cloud Storage Bucket was used to store raw data and trained model artifacts. The bucket was also used together with DVC for data and model versioning, making experiments reproducible across team members.
+
+We used Google Cloud Run was used to deploy the trained model as a containerized FastAPI service. That allowed us to run Docker images without managing servers.
+
+Google Cloud Build was used to build Docker images from the GitHub repository and push them to the registry as part of deployment.
+
+Finally, IAM (Identity and Access Management) was used to control access, for example granting collaborators permissions to the storage bucket, but several team members had problems in this step, and we did not manage to integrate a fast access possibility locally.
 
 ### Question 18
 
@@ -440,7 +452,11 @@ Overall, W&B allows us to keep track of metrics, hyperparameters, and experiment
 >
 > Answer:
 
---- question 18 fill here ---
+We used Google Compute Engine to run virtual machines where we did development and testing of our project in the cloud. The VMs were used to run Docker containers for training, evaluation, and debugging, which made it easier to reproduce issues that did not appear on local machines. This helped us overcome problems with individual machines, especially RAM-related issues.
+Using GCE was useful for testing access to Google Cloud Storage and checking that our containers worked correctly in a cloud environment. This allowed us to verify that the full pipeline worked outside local machines before deployment.
+
+We used general-purpose CPU-based virtual machines, which were sufficient given the moderate size of our dataset and model. The virtual machines were mainly used to pull data from Google Cloud Storage, run training and evaluation scripts, and test Docker images in a cloud environment. 
+
 
 ### Question 19
 
