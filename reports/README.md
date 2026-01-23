@@ -642,6 +642,10 @@ We did implement a frotend for our API. A very simple frontend with the opportun
 >
 > Answer:
 
+![GCP_cloudbuild_v1](figures/Q29.png.png)
+
+
+
 Our system architecture is designed as a modular MLOps pipeline that separates data management, model training, and service deployment. The process follows these key steps:
 
 1. Local Development and Configuration: The starting point is our local environment where we use Hydra for configuration management. This allows us to experiment with different hyperparameters and dataset versions without modifying the core logic. For experiment tracking, we integrated Weights & Biases (W&B), which logs metrics like loss and accuracy in real-time, allowing us to compare different training runs.
@@ -704,5 +708,7 @@ Student s204151: helped ensure high code quality by writing unit tests, using pr
 Student s242875: Supported the development process by reviewing code structure, helping align the project with course modules, and assisting with documentation and report refinement. Also helped by testing components locally and verifying configurations.
 
 Student s242845: Integrated Hydra for configuration management, and set up WandB for logging. Implemented pre-commit hooks to automate code formatting and quality checks. Also containerized the project with Docker and optimized the deployment API by migrating to ONNX.
+
+Student 242708: Worked Docker for reproducible runs and improving the GitHub CI pipeline. Made fixes in core source files such as data and training. assisted with cloud-related setup, testing components locally, and debugging configuration and environment issues. 
 
 AI has been used as for several parts of the project. It has been used as a step after prototyping, to debug code pieces of code, and to optimize the it as well. It has also been used partly to write easily understandable inline comments, and to standardize them. It has also been used to reformulate parts of the the report writing in order to make it sound more professional, and to reduce redundacy and increase readability.
