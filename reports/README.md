@@ -52,53 +52,53 @@ will check the repositories and the code to verify your answers.
 
 ### Week 1
 
-* [ ] Create a git repository (M5)
-* [ ] Make sure that all team members have write access to the GitHub repository (M5)
-* [ ] Create a dedicated environment for you project to keep track of your packages (M2)
-* [ ] Create the initial file structure using cookiecutter with an appropriate template (M6)
-* [ ] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
-* [ ] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
-* [ ] Remember to either fill out the `requirements.txt`/`requirements_dev.txt` files or keeping your
+* [x] Create a git repository (M5)
+* [x] Make sure that all team members have write access to the GitHub repository (M5)
+* [x] Create a dedicated environment for you project to keep track of your packages (M2)
+* [x] Create the initial file structure using cookiecutter with an appropriate template (M6)
+* [x] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
+* [x] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
+* [x] Remember to either fill out the `requirements.txt`/`requirements_dev.txt` files or keeping your
     `pyproject.toml`/`uv.lock` up-to-date with whatever dependencies that you are using (M2+M6)
-* [ ] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
-* [ ] Do a bit of code typing and remember to document essential parts of your code (M7)
-* [ ] Setup version control for your data or part of your data (M8)
-* [ ] Add command line interfaces and project commands to your code where it makes sense (M9)
-* [ ] Construct one or multiple docker files for your code (M10)
-* [ ] Build the docker files locally and make sure they work as intended (M10)
-* [ ] Write one or multiple configurations files for your experiments (M11)
-* [ ] Used Hydra to load the configurations and manage your hyperparameters (M11)
+* [x] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
+* [x] Do a bit of code typing and remember to document essential parts of your code (M7)
+* [x] Setup version control for your data or part of your data (M8)
+* [x] Add command line interfaces and project commands to your code where it makes sense (M9)
+* [x] Construct one or multiple docker files for your code (M10)
+* [x] Build the docker files locally and make sure they work as intended (M10)
+* [x] Write one or multiple configurations files for your experiments (M11)
+* [x] Used Hydra to load the configurations and manage your hyperparameters (M11)
 * [ ] Use profiling to optimize your code (M12)
-* [ ] Use logging to log important events in your code (M14)
-* [ ] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
-* [ ] Consider running a hyperparameter optimization sweep (M14)
+* [x] Use logging to log important events in your code (M14)
+* [x] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
+* [x] Consider running a hyperparameter optimization sweep (M14)
 * [ ] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
 
 ### Week 2
 
-* [ ] Write unit tests related to the data part of your code (M16)
-* [ ] Write unit tests related to model construction and or model training (M16)
-* [ ] Calculate the code coverage (M16)
-* [ ] Get some continuous integration running on the GitHub repository (M17)
-* [ ] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
-* [ ] Add a linting step to your continuous integration (M17)
-* [ ] Add pre-commit hooks to your version control setup (M18)
-* [ ] Add a continues workflow that triggers when data changes (M19)
-* [ ] Add a continues workflow that triggers when changes to the model registry is made (M19)
-* [ ] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
-* [ ] Create a trigger workflow for automatically building your docker images (M21)
-* [ ] Get your model training in GCP using either the Engine or Vertex AI (M21)
-* [ ] Create a FastAPI application that can do inference using your model (M22)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
-* [ ] Write API tests for your application and setup continues integration for these (M24)
+* [x] Write unit tests related to the data part of your code (M16)
+* [x] Write unit tests related to model construction and or model training (M16)
+* [x] Calculate the code coverage (M16)
+* [x] Get some continuous integration running on the GitHub repository (M17)
+* [x] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
+* [x] Add a linting step to your continuous integration (M17)
+* [x] Add pre-commit hooks to your version control setup (M18)
+* [x] Add a continues workflow that triggers when data changes (M19)
+* [x] Add a continues workflow that triggers when changes to the model registry is made (M19)
+* [x] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
+* [x] Create a trigger workflow for automatically building your docker images (M21)
+* [x] Get your model training in GCP using either the Engine or Vertex AI (M21)
+* [x] Create a FastAPI application that can do inference using your model (M22)
+* [x] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [x] Write API tests for your application and setup continues integration for these (M24)
 * [ ] Load test your application (M24)
 * [ ] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
-* [ ] Create a frontend for your API (M26)
+* [x] Create a frontend for your API (M26)
 
 ### Week 3
 
 * [ ] Check how robust your model is towards data drifting (M27)
-* [ ] Setup collection of input-output data from your deployed application (M27)
+* [x] Setup collection of input-output data from your deployed application (M27)
 * [ ] Deploy to the cloud a drift detection API (M27)
 * [ ] Instrument your API with a couple of system metrics (M28)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
@@ -109,12 +109,12 @@ will check the repositories and the code to verify your answers.
 
 ### Extra
 
-* [ ] Write some documentation for your application (M32)
+* [x] Write some documentation for your application (M32)
 * [ ] Publish the documentation to GitHub Pages (M32)
-* [ ] Revisit your initial project description. Did the project turn out as you wanted?
-* [ ] Create an architectural diagram over your MLOps pipeline
-* [ ] Make sure all group members have an understanding about all parts of the project
-* [ ] Uploaded all your code to GitHub
+* [x] Revisit your initial project description. Did the project turn out as you wanted?
+* [x] Create an architectural diagram over your MLOps pipeline
+* [x] Make sure all group members have an understanding about all parts of the project
+* [x] Uploaded all your code to GitHub
 
 ## Group information
 
@@ -134,7 +134,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
-s204151, s242875, s242708, s242845, s174035
+s204151, s242875, s242708, s242845, s174035(ralor)
 
 ### Question 3
 > **Did you end up using any open-source frameworks/packages not covered in the course during your project? If so**
@@ -368,14 +368,16 @@ For version control we used DVC for data and model checkpoints, which allows us 
 >
 > Answer:
 
-![wandb_1](figures/wand_1.png)
-![wandb_3](figures/wand_2.png)
-![wandb_2](figures/wand_3.png)
+![wandb_1](figures/wandb_1.png)
+![wandb_3](figures/wandb_3.png)
+![wandb_2](figures/wandb_2.png)
 
 The screenshots above show experiments that were tracked using Weights & Biases (W&B) while training and validating our alcohol classification model.
-In the first image, we track training loss and training accuracy across epochs. The training loss drops quickly and the accuracy increases to almost 100%, which shows that the model is learning the training data effectively and that the optimization setup works as intended.
+In the first image, we track training/validation loss and accuracy across epochs. The training loss drops quickly and the accuracy increases to almost 100%, which shows that the model is learning the training data effectively and that the optimization setup works as intended. However, even though the validation shows similar trends, it is much more variable and changes accross epochs, which is a sign of overfitting.
 
-The second image shows validation loss and validation accuracy. These metrics are important because they tell us how well the model performs on data it has not seen during training. While the validation accuracy stays fairly stable around 92–93%, the validation loss fluctuates slightly. Comparing training and validation metrics helps us identify overfitting and decide whether changes such as regularization or fewer epochs are needed.
+The second image shows validation loss and validation accuracy accross different runs. Here we can observe significant differences between some runs, and we can investigate the model setup for each indivual run to get closer to what actually works in our models, and what does not.
+
+
 In the third image, we log system-level metrics, such as GPU clock speed during training. These metrics are useful for understanding hardware performance, comparing runs on different machines, and explaining differences in training time. They also help with debugging performance issues when running experiments on GPUs.
 
 Overall, W&B allows us to keep track of metrics, hyperparameters, and experiment history in one place. This makes it easier to compare runs, reproduce results, and understand how different configuration choices affect both model performance and training efficiency.
@@ -393,7 +395,7 @@ Overall, W&B allows us to keep track of metrics, hyperparameters, and experiment
 >
 > Answer:
 
---- question 15 fill here ---
+********* WIRTE SOMETHING HERE ***********
 
 ### Question 16
 
@@ -536,6 +538,8 @@ The API has two main endpoints. The /health endpoint is a simple check to see if
 
 Yes, we deployed our API both locally and in the cloud. We started by running the FastAPI service locally to check that everything worked as intended, such as loading the model correctly and returning predictions. After that, we packaged the API together with the trained model into a Docker container, which we then tried to deploy to the Google Cloud platform.
 
+******** WRITE A BIT MORE HERE *******
+
 ### Question 25
 
 > **Did you perform any unit testing and load testing of your API? If yes, explain how you did it and what results for**
@@ -602,7 +606,6 @@ We actually worked on two Google Cloud Platforms simultaneously which was propab
 > Answer:
 We did implement a frotend for our API. A very simple frontend with the opportunity of uploading an image of your prefered beverages withing the three classes beer/wine/whiskey, and it will output the the predicted class based on our model in a string-format, and the probability of each class.
 
---- question 28 fill here ---
 
 ### Question 29
 
@@ -633,6 +636,17 @@ We did implement a frotend for our API. A very simple frontend with the opportun
 >
 > Answer:
 
+Github: There were different levels of expereience with Git in the group in general, and only few with collaborative experience in Git, so there were some struggles on merging branches and overwritting/deleting files between group members.
+
+Google Cloud Platform: None of us had expereience in using GCP, so there has a steep learning curve in getting aquainted with GCP, and also developing a system for easy use on one project among all members of the group.
+
+Utilizing multiple frameworks siultaneously: In the project we tried out multiple frameworks for version control, debbugging, optimizing etc. and different members had the "lead" on different frameworks. This meant that configuring files, dependencies, requirements etc. was something that had to be communicated among members, and could cause bugs while running the code. Moreover, there was a challenge in getting used to a lot of new frameworks simultaneously and learning how to utilize and incorporating them in the code, and doing that as a group.
+
+Config files and requirements: There were a few struggles related to incorporating new code, but not necessarily updating requirement files or config files.
+
+Remote work: Much of the work was done remotely, which was introducing a further challenges, especially given the time-scope of the project. However, it did force us to ensure good coding practice, describe our code to be easily understood, and be very focussed on version control.
+
+
 
 
 ### Question 31
@@ -651,4 +665,7 @@ We did implement a frotend for our API. A very simple frontend with the opportun
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here ---
+Student ralor: Contributed to developing core modules train.py, data.py etc. He has contributed to developing FastApi, frontend integration, and GCP integration of the proejct. He has also contributed to report writing.
+
+
+AI has been used as for several parts of the project. It has been used as a step after prototyping, to debug code pieces of code, and to optimize the it as well. It has also been used partly to write easily understandable inline comments, and to standardize them. It has also been used to reformulate parts of the the report writing in order to make it sound more professional, and to reduce redundacy and increase readability. 
