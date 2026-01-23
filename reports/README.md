@@ -306,7 +306,17 @@ Using DVC made our collaboration efforts easier, since everyone on the team coul
 > Answer:
 
 
-*WRITE SOMETHING HERE BLA BLA *************
+Our continuous integration (CI) setup is consists of various GitHub Actions workflows to ensure code quality and reliability. We have workflows for unit testing, and building Docker images. These worksflows are executes every time a change is committed to the main branch. Python version 3.12 was tested in all workflows and Ubuntu was tested in all workflows besides tests.yml which runs the latest version of Windows.
+
+File `.github/workflows/tests.yml` runs Ruff to check for code style/formatting issues and uses pytest to run all unit tests.
+
+File `.github/workflows/docker-build.yml` builds Docker images. This quality checks our Dockerfiles and checks if they can be built successfully.
+
+File `.github/workflows/data-changes.yml` does data testing (runs `tests/test_data.py`) to ensure that data changes don't break anything.
+
+File `.github/workflows/model-registry-changes.yml` tests the model training/creation and tests linting. It runs `tests/tests/test_model.py` and `tests/test_train_step.py`
+
+An example of a triggered workflow can be seen here: https://github.com/spohnle-dtu/mlops-alcohol-classifier/actions/runs/21292282158
 
 
 ## Running code and tracking experiments
@@ -539,7 +549,7 @@ The API has two main endpoints. The /health endpoint is a simple check to see if
 
 Yes, we deployed our API both locally and in the cloud. We started by running the FastAPI service locally to check that everything worked as intended, such as loading the model correctly and returning predictions. After that, we packaged the API together with the trained model into a Docker container, which we then tried to deploy to the Google Cloud platform.
 
-******** WRITE A BIT MORE HERE *******
+We also made a frontend using Streamlit, which allows users to use our API and get a prediction based on an Image that the user uploads. This allows a very user-friendly way of using our model and API without any technical know-how.
 
 ### Question 25
 
@@ -615,16 +625,11 @@ We did implement a frotend for our API. A very simple frontend with the opportun
 > **You can take inspiration from [this figure](figures/overview.png). Additionally, in your own words, explain the**
 > **overall steps in figure.**
 >
-> Recommended answer length: 200-400 words
+![GCP_cloudbuild_v1](figures/GCP_cloudbuild_v1.png)
 >
-> Example:
->
-> *The starting point of the diagram is our local setup, where we integrated ... and ... and ... into our code.*
-> *Whenever we commit code and push to GitHub, it auto triggers ... and ... . From there the diagram shows ...*
->
-> Answer:
 
---- question 29 fill here ---
+The starting point of the system architecture is our local development environment, where the machine learning model is implemented and trained using PyTorch. Configuration management is handled using Hydra, which allows us to easily control training parameters and experiment settings. During training and evaluation, experiment metrics are logged using Weights & Biases to track model performance. The project dependencies are managed using Conda and a requirements.txt file. Version control is handled using Git with GitHub as the remote repository. Large data files and trained model artifacts are versioned using DVC, which links the local storage to a Google Cloud Storage (GCS) bucket. Once the model is trained, it is packaged together with a FastAPI-based inference application inside a Docker container. Docker ensures that the runtime environment used locally is identical to the one used in the cloud.
+From there, the container is deployed as a scalable inference service on Google Cloud Run. The deployed Cloud Run service exposes an API endpoint that accepts image inputs and returns classification predictions.
 
 ### Question 30
 
