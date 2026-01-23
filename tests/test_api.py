@@ -1,10 +1,11 @@
+import importlib
 import io
 import sys
-import importlib
-import pytest
+
 import numpy as np
-from fastapi.testclient import TestClient
+import pytest
 from PIL import Image
+from fastapi.testclient import TestClient
 
 
 def _import_api_with_dummy(monkeypatch, logits: np.ndarray):

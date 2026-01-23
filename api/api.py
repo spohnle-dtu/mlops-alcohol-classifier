@@ -1,5 +1,6 @@
 # src/alcohol_classifier/api.py
 import io
+
 import numpy as np
 import onnxruntime as ort
 from PIL import Image

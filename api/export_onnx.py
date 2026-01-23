@@ -1,5 +1,6 @@
-from src.alcohol_classifier.model import BeverageModel
 import torch
+from src.alcohol_classifier.model import BeverageModel
+
 
 def export_to_onnx(checkpoint_path="models/best_model.pt", output_path="models/model.onnx"):
 
